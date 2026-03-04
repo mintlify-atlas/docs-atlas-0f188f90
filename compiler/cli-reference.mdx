@@ -1,0 +1,210 @@
+---
+title: "CLI reference"
+description: "Complete command-line interface reference for the Neutronium compiler"
+---
+
+The Neutronium compiler provides a comprehensive command-line interface for compiling programs and libraries. All options can be passed directly to the compiler executable or through the provided shell scripts.
+
+## Basic Usage
+
+```bash
+./compile.sh <input-file> [OPTIONS]
+./run.sh <input-file> [OPTIONS]
+```
+
+## CLI Options
+
+<ParamField path="input" type="string" required>
+  The Neutronium source file to compile (positional argument)
+  
+  ```bash
+  ./compile.sh examples/hello.nt
+  ```
+</ParamField>
+
+<ParamField path="--help" type="flag">
+  Print help information and exit
+  
+  ```bash
+  ./compile.sh --help
+  ```
+</ParamField>
+
+<ParamField path="--version" type="flag">
+  Print the compiler version and exit
+  
+  Outputs: `Neutronium Compiler v0.3.0`
+  
+  ```bash
+  ./compile.sh --version
+  ```
+</ParamField>
+
+<ParamField path="--target-type" type="string" default="bin">
+  Specify the compilation target type
+  
+  **Accepted values:**
+  - `bin` or `executable` - Compile to an executable binary
+  - `lib` or `library` - Compile to a library object file
+  
+  ```bash
+  # Compile as executable (default)
+  ./compile.sh main.nt --target-type bin
+  
+  # Compile as library
+  ./compile.sh mylib.nt --target-type lib
+  ```
+  
+  See [Target Types](/compiler/target-types) for more details.
+</ParamField>
+
+<ParamField path="--debug" type="flag">
+  Enable all debug logs (equivalent to --log-code --log-ast --log-assembly)
+  
+  ```bash
+  ./compile.sh program.nt --debug
+  ```
+  
+  See [Debugging Options](/compiler/debugging-options) for more granular control.
+</ParamField>
+
+### Debug Logging Options
+
+<ParamField path="--log-code" type="flag">
+  Log the raw source file contents before compilation
+  
+  ```bash
+  ./compile.sh program.nt --log-code
+  ```
+</ParamField>
+
+<ParamField path="--log-tokens" type="flag">
+  Log the generated tokens during lexical analysis
+  
+  <Note>
+    Token logging requires the `--only-lex` option to stop after lexing
+  </Note>
+  
+  ```bash
+  ./compile.sh program.nt --log-tokens --only-lex
+  ```
+</ParamField>
+
+<ParamField path="--log-ast" type="flag">
+  Log the generated Abstract Syntax Tree after parsing
+  
+  ```bash
+  ./compile.sh program.nt --log-ast
+  ```
+</ParamField>
+
+<ParamField path="--log-assembly" type="flag">
+  Log the final x86-64 assembly output
+  
+  ```bash
+  ./compile.sh program.nt --log-assembly
+  ```
+</ParamField>
+
+<ParamField path="--log" type="string">
+  Comma-separated list of logs to enable: `code`, `ast`, `assembly`
+  
+  ```bash
+  # Enable specific logs
+  ./compile.sh program.nt --log code,ast
+  
+  # Enable assembly only
+  ./compile.sh program.nt --log assembly
+  ```
+</ParamField>
+
+### Pipeline Control Options
+
+<ParamField path="--only-lex" type="flag">
+  Run the lexer and stop (does not parse or compile)
+  
+  Useful for debugging tokenization issues
+  
+  ```bash
+  ./compile.sh program.nt --only-lex --log-tokens
+  ```
+</ParamField>
+
+<ParamField path="--only-parse" type="flag">
+  Run the parser and stop (does not perform semantic analysis)
+  
+  Useful for debugging parsing and AST generation
+  
+  ```bash
+  ./compile.sh program.nt --only-parse --log-ast
+  ```
+</ParamField>
+
+<ParamField path="--only-sema" type="flag">
+  Run semantic analysis and stop (does not generate code)
+  
+  Useful for type checking and semantic validation
+  
+  ```bash
+  ./compile.sh program.nt --only-sema
+  ```
+</ParamField>
+
+<ParamField path="--only-codegen" type="flag">
+  Run code generation and stop (does not assemble or link)
+  
+  Useful for inspecting generated assembly before final compilation
+  
+  ```bash
+  ./compile.sh program.nt --only-codegen --log-assembly
+  ```
+</ParamField>
+
+## Examples
+
+<CodeGroup>
+```bash Compile and Run
+# Build compiler and run a program
+./run.sh examples/fibonacci.nt
+```
+
+```bash Compile Only
+# Build compiler and compile to executable
+./compile.sh src/main.nt
+
+# Output will be at: neutro/out
+```
+
+```bash Debug Compilation
+# See all compilation stages
+./compile.sh program.nt --debug
+
+# Debug specific stage
+./compile.sh program.nt --only-parse --log-ast
+```
+
+```bash Library Compilation
+# Compile as library object file
+./compile.sh mylib.nt --target-type lib
+
+# Output will be at: neutro/mylib.o
+```
+</CodeGroup>
+
+## Output Locations
+
+The compiler creates a `neutro/` directory for all output files:
+
+- **Executables**: `neutro/out` (when `--target-type bin`)
+- **Library objects**: `neutro/<filename>.o` (when `--target-type lib`)
+- **Assembly files**: `neutro/<filename>.asm` (intermediate)
+
+<Note>
+  The `neutro/` directory is cleaned and recreated on each compilation run
+</Note>
+
+## Related Pages
+
+- [Compilation Pipeline](/compiler/compilation-pipeline) - Understand the compilation stages
+- [Debugging Options](/compiler/debugging-options) - Deep dive into debug flags
+- [Target Types](/compiler/target-types) - Learn about executable vs library compilation

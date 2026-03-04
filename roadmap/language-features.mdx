@@ -1,0 +1,122 @@
+---
+title: Language features roadmap
+description: Planned features and enhancements for the Neutronium language
+---
+
+This document presents planned features and language constructs for Neutronium. The roadmap is divided into two main phases: **basic** and **advanced**. The basic phase contains simple constructs to make the language easier and friendlier to use, while the advanced phase introduces more complex features that might be implemented in the distant future.
+
+<Note>
+All of the following is subject to change.
+</Note>
+
+## Basic Features
+
+<Accordion title="Literals">
+
+**Floating-point numbers**
+- [ ] `float32` and `float64` support
+
+**Characters and strings**
+- [ ] Character literals: `'a'`
+- [ ] String literals: `"hello world"`
+
+**Unsigned integers**
+- [ ] `uint8`, `uint16`, `uint32`, `uint64`
+
+**Numeric literal improvements**
+- [x] `_` digit separator (`1_000_000`)
+- [ ] Hexadecimal: `0x` prefix
+- [ ] Binary: `0b` prefix
+- [ ] Octal: `0o` prefix
+
+</Accordion>
+
+<Accordion title="Arrays">
+
+- [x] Sized array literal shorthand: `[expr; N]` for an array containing `N` copies of `expr`
+- [ ] Length inference: `let a: [int] = [1,2,3];` instead of `let a: [int; 3] = [1,2,3];`
+
+</Accordion>
+
+<Accordion title="Operators">
+
+- [x] Logical operators: `&&` and `||`
+- [ ] Increment/decrement: `++` and `--` (postfix) as syntactic sugar for `+= 1` and `-= 1`. They are statements, not expressions.
+- [ ] Bitwise operators: `&`, `|`, `^`, `~`, `<<`, `>>`
+
+</Accordion>
+
+<Accordion title="Control Flow">
+
+**For loops**
+- [ ] Range-based: `for i in 0..n:`
+- [ ] Iterator-based: `for x in collection:`
+
+</Accordion>
+
+<Accordion title="Functions & Declarations">
+
+- [ ] Declaration without initialization: `let x: [int; 500];`
+- [ ] Function pointer types: enables passing functions as arguments and returning them from functions `fn(int)->int`
+- [ ] `const` for compile-time constants: `const PI: float64 = 3.14159;` (only in global scope)
+
+</Accordion>
+
+## Advanced Features
+
+<Accordion title="Modules">
+
+**Import statements**
+- [ ] `import Foo;`: all symbols from module Foo
+- [ ] `import Foo::bar;`: specific symbol
+- [ ] `import Foo::{bar, baz};`: multiple symbols
+
+**Module system**
+- [ ] All files are modules; maybe support specific module declaration
+
+</Accordion>
+
+<Accordion title="Data Structures">
+
+- [ ] **Structs**: only contains data fields, no methods
+  ```neutronium
+  struct Point { x:int; y:int; };
+  ```
+
+- [ ] **Classes**: data fields + methods + constructors + inheritance
+
+- [ ] **Enums with variants**:
+  ```neutronium
+  enum Result { Ok(int), Err(string) };
+  ```
+
+- [ ] **Pattern matching** with match or switch:
+  ```neutronium
+  match/switch value: {
+    case Pattern1: ...;
+    case Pattern2: ...;
+  }
+  ```
+
+</Accordion>
+
+<Accordion title="Functional Programming">
+
+- [ ] **Lambdas/anonymous functions**: `let add = fn(a:int, b:int) -> int: { a + b };` (syntax subject to revision)
+
+</Accordion>
+
+<Accordion title="Generics">
+
+- [ ] Generic functions: `fn foo<T>(bar: T) -> T: {}`
+- [ ] Trait definitions and implementations
+
+</Accordion>
+
+<Accordion title="Memory & Runtime">
+
+- [ ] Garbage collector or ARC for automatic memory management
+- [ ] Pointer/reference types but not pointer arithmetic
+- [ ] Concurrency support: `async` and `await` keywords
+
+</Accordion>

@@ -1,0 +1,266 @@
+---
+title: Arrays
+description: Work with fixed-size arrays in Neutronium
+---
+
+Neutronium provides fixed-size arrays with compile-time known sizes. Arrays are statically typed and their size is part of the type.
+
+## Array Type Syntax
+
+Array types use the syntax `[element-type; size]`:
+
+```neutronium
+let numbers: [int; 5] = [1, 2, 3, 4, 5];
+let flags: [bool; 3] = [true, false, true];
+let bytes: [int8; 4] = [0, 1, 2, 3];
+```
+
+### Array Type Grammar
+
+```ebnf
+array-type ::= '[' type-specifier ';' integer-literal ']'
+```
+
+<Note>
+Array sizes must be compile-time constants (integer literals). Dynamic array sizes are not supported.
+</Note>
+
+## Array Literals
+
+Create arrays with comma-separated values in square brackets:
+
+```neutronium
+let numbers = [1, 2, 3, 4, 5];
+let mixed = [10, 20, 30];
+```
+
+### Array Literal Grammar
+
+```ebnf
+array-literal ::= '[' expression-list ']'
+expression-list ::= [ expression { ',' expression } ]
+```
+
+## Repeat Syntax
+
+Create arrays with repeated values using `[value; count]` syntax:
+
+```neutronium
+let zeros = [0; 10];      # [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+let ones = [1; 5];        # [1, 1, 1, 1, 1]
+let flags = [true; 3];    # [true, true, true]
+```
+
+### Repeat Array Grammar
+
+```ebnf
+repeat-array-literal ::= '[' expression ';' integer-literal ']'
+```
+
+<Warning>
+The repeat syntax `[expr; N]` creates an array, while the array type `[type; N]` specifies an array's type. Don't confuse:
+- `[0; 5]` - Array literal: creates `[0, 0, 0, 0, 0]`
+- `[int; 5]` - Array type: specifies a 5-element int array
+</Warning>
+
+## Array Indexing
+
+Access array elements with square bracket notation (zero-based indexing):
+
+```neutronium
+let numbers = [10, 20, 30, 40, 50];
+let first = numbers[0];   # 10
+let third = numbers[2];   # 30
+let last = numbers[4];    # 50
+```
+
+### Index Assignment
+
+Modify array elements if the array is mutable:
+
+```neutronium
+let mut array = [1, 2, 3, 4, 5];
+array[0] = 10;
+array[2] = 30;
+# array is now [10, 2, 30, 4, 5]
+```
+
+### Indexing Grammar
+
+```ebnf
+postfix-expression ::= primary-expression
+                     | postfix-expression '[' expression ']'
+```
+
+## Array Mutability
+
+Arrays follow the same mutability rules as other variables:
+
+```neutronium
+# Immutable array - cannot modify elements
+let numbers = [1, 2, 3];
+numbers[0] = 10;  # Error: array is immutable
+
+# Mutable array - can modify elements
+let mut values = [1, 2, 3];
+values[0] = 10;   # OK
+values[1] += 5;   # OK
+```
+
+<Note>
+The `mut` keyword on an array allows modifying its elements, not changing the array itself. Arrays have fixed size and cannot be resized.
+</Note>
+
+## Real-World Examples
+
+### Using Arrays in Computation
+
+```neutronium
+fn main(): {
+    let mut array: [int32; 5] = [1, 2, 3, 4, 5];
+    let smallNumber = 5;
+    
+    # Access array element in expression
+    let counter = array[2] * 10 - smallNumber;
+    # counter = 3 * 10 - 5 = 25
+}
+```
+
+### Array Type Specifications
+
+```neutronium
+# Different integer types for array elements
+let bytes: [int8; 4] = [1, 2, 3, 4];
+let shorts: [int16; 3] = [100, 200, 300];
+let ints: [int32; 5] = [1, 2, 3, 4, 5];
+let longs: [int64; 2] = [1000000, 2000000];
+```
+
+### Arrays with Expressions
+
+```neutronium
+let x = 5;
+let y = 10;
+
+# Array elements can be expressions
+let computed = [x + y, x * y, x - y];
+# computed = [15, 50, -5]
+
+let mut array = [1, 2, 3];
+let values = [array[0], array[1] * 2, array[2] + 5];
+# values = [1, 4, 8]
+```
+
+## Array Limitations
+
+<Warning>
+Neutronium arrays have several limitations:
+
+1. **Fixed size**: Array size must be a compile-time constant
+2. **No dynamic allocation**: Cannot create arrays with runtime-determined size
+3. **No built-in length property**: Track array length separately if needed
+4. **No bounds checking guarantee**: Accessing out-of-bounds indices is undefined behavior
+</Warning>
+
+## Working with Array Elements
+
+### Iterating Over Arrays
+
+```neutronium
+let array = [10, 20, 30, 40, 50];
+let mut i = 0;
+
+while i < 5: {
+    print_num(array[i]);
+    i += 1;
+}
+```
+
+### Modifying Array Elements
+
+```neutronium
+let mut values = [1, 2, 3, 4, 5];
+let mut i = 0;
+
+while i < 5: {
+    values[i] = values[i] * 2;
+    i += 1;
+}
+# values is now [2, 4, 6, 8, 10]
+```
+
+## Best Practices
+
+<Accordion title="Always track array bounds">
+
+Manually ensure you don't access beyond array bounds:
+
+**Good:**
+```neutronium
+let array: [int; 5] = [1, 2, 3, 4, 5];
+let size = 5;
+let mut i = 0;
+
+while i < size: {
+    print_num(array[i]);
+    i += 1;
+}
+```
+
+**Dangerous:**
+```neutronium
+let array: [int; 5] = [1, 2, 3, 4, 5];
+let value = array[10];  # Out of bounds!
+```
+
+</Accordion>
+
+<Accordion title="Use repeat syntax for initialization">
+
+When initializing arrays with the same value, use repeat syntax:
+
+**Good:**
+```neutronium
+let zeros = [0; 100];
+let flags = [false; 50];
+```
+
+**Avoid:**
+```neutronium
+let zeros = [0, 0, 0, 0, 0, 0, ...];  # Repetitive and error-prone
+```
+
+</Accordion>
+
+<Accordion title="Specify element type when needed">
+
+Use explicit array types for specific integer sizes:
+
+**Good:**
+```neutronium
+let bytes: [int8; 256] = [0; 256];    # Explicit small type
+let samples: [int32; 100] = [0; 100]; # Explicit size
+```
+
+**When type inference is fine:**
+```neutronium
+let numbers = [1, 2, 3];  # Default int type is adequate
+```
+
+</Accordion>
+
+## Type Compatibility
+
+Array types must match exactly, including size:
+
+```neutronium
+let a: [int; 3] = [1, 2, 3];
+let b: [int; 5] = [1, 2, 3, 4, 5];
+
+# a and b have different types!
+# [int; 3] is not compatible with [int; 5]
+```
+
+<Note>
+Two array types are only compatible if they have the same element type AND the same size.
+</Note>

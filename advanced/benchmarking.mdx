@@ -1,0 +1,286 @@
+---
+title: "Benchmarking"
+description: "Create and run performance benchmarks for Neutronium"
+---
+
+The Neutronium compiler includes a benchmarking framework for testing compiler performance on large, realistic codebases. This guide explains how to create and run benchmarks.
+
+## Overview
+
+The benchmarking framework generates large Neutronium source files from smaller templates. This allows you to:
+
+- Test compiler performance at scale
+- Measure compilation speed on realistic code patterns
+- Identify performance regressions
+- Prevent compiler over-optimization from caching or branch prediction
+
+Benchmarks are located in `benchmark/tests/` and use a template-based system to create diverse, large-scale test files.
+
+## Benchmark Structure
+
+Each benchmark is a directory under `benchmark/tests/` that contains:
+
+<Steps>
+  <Step title="main.nt file">
+    The base file for your benchmark. This file is copied **once** at the top of the final generated benchmark.
+    
+    Use this for:
+    - External function declarations
+    - Global helper functions
+    - Entry point (`main` function)
+    - Initial setup code
+  </Step>
+  
+  <Step title="variant_*.nt files">
+    Variation files that are copied **many times** to increase benchmark size.
+    
+    Requirements:
+    - Must be named `variant_1.nt`, `variant_2.nt`, `variant_3.nt`, etc.
+    - Indices must be contiguous starting from 1
+    - Each variant can be included 0 or more times in the final build
+  </Step>
+</Steps>
+
+### The $ID$ Placeholder
+
+To prevent name collisions when copying variant files multiple times, use the **`$ID$` placeholder** in function and variable names:
+
+```neutronium
+fn secondary$ID$(): {
+    let mut delta = 99;
+    let mut omega = 300;
+    // ... function body ...
+    return;
+}
+```
+
+During the build process, `$ID$` is replaced with a unique index for each copy:
+
+```neutronium
+fn secondary1(): { ... }
+fn secondary2(): { ... }
+fn secondary3(): { ... }
+```
+
+<Note>
+  Use `$ID$` in any identifier that could cause a naming conflict when the variant is copied multiple times.
+</Note>
+
+## Creating a New Benchmark
+
+<Steps>
+  <Step title="Create benchmark directory">
+    Create a new directory under `benchmark/tests/`:
+    
+    ```bash
+    mkdir benchmark/tests/my-benchmark
+    cd benchmark/tests/my-benchmark
+    ```
+  </Step>
+  
+  <Step title="Write main.nt">
+    Create the base file with declarations and the main entry point:
+    
+    ```neutronium
+    # External declarations
+    extern fn print_num(num: int);
+    extern fn mod(a: int, b: int) -> int;
+    
+    # Helper functions
+    fn println(noParam: bool): {}
+    
+    # Entry point
+    fn main(): {
+        let value = 42;
+        print_num(value);
+        return;
+    }
+    ```
+  </Step>
+  
+  <Step title="Write variant files">
+    Create one or more variant files with the `$ID$` placeholder:
+    
+    **variant_1.nt:**
+    ```neutronium
+    fn compute$ID$(x: int, y: int) -> int: {
+        let result = x * y + x - y;
+        return result / 2;
+    }
+    ```
+    
+    **variant_2.nt:**
+    ```neutronium
+    fn process$ID$(flag: bool): {
+        if flag: {
+            println(true);
+        } else: {
+            println(false);
+        }
+    }
+    ```
+  </Step>
+</Steps>
+
+## Real Example: General Benchmark
+
+The `benchmark/tests/general/` directory demonstrates a comprehensive benchmark:
+
+### main.nt
+
+The main file includes:
+- External stdlib declarations (`print_c`, `print_num`, `mod`, `abs`, `min`, `max`, `pow`)
+- Helper functions used by variants
+- A complete `main()` function with:
+  - Variable declarations and arrays
+  - Arithmetic operations
+  - Control flow (`if`/`elif`/`else`, `while` loops)
+  - Function calls
+  - Standard library usage
+
+### Variant Files
+
+The general benchmark includes **11 variant files** (`variant_1.nt` through `variant_11.nt`), each containing:
+
+- Unique function definitions with `$ID$` placeholders
+- Different code patterns (loops, conditionals, arrays)
+- Varied complexity levels
+
+**Example variant_1.nt:**
+```neutronium
+fn secondary$ID$(): {
+    let mut delta = 99;
+    let mut omega = 300;
+    let mut toggle = false;
+    let limit = 900;
+
+    if delta < omega: {
+        delta += 5 * 2 - 7;
+        println(toggle);
+    } elif omega == limit: {
+        println(true);
+    } else: {
+        println(false);
+    }
+
+    while delta < limit: {
+        delta += 10;
+        omega -= 2;
+        if omega <= 0: {
+            break;
+        }
+    }
+
+    let mut idx = 0;
+    let data = [2, 4, 6, 8];
+    while idx < 4: {
+        let value = data[idx] + delta / 4;
+        println(true);
+        idx += 1;
+    }
+
+    return;
+}
+```
+
+## Building Benchmarks
+
+Use the `build_benchmark.py` script to generate the final benchmark file:
+
+```bash
+python benchmark/build_benchmark.py
+```
+
+### How It Works
+
+<Steps>
+  <Step title="Copies main.nt">
+    The script copies `main.nt` once to the top of the output file.
+  </Step>
+  
+  <Step title="Copies variants N times">
+    Variant files are copied N times in a **random but deterministic** order.
+    
+    - A specific variant may appear 0 times (not included)
+    - Other variants may appear multiple times
+    - Order is randomized to break branch prediction
+  </Step>
+  
+  <Step title="Replaces $ID$ placeholders">
+    Each copy gets a unique ID replacing all `$ID$` occurrences.
+  </Step>
+  
+  <Step title="Writes to generated/">
+    Output is saved to `generated/<source_dir>/<output_filename>`.
+    
+    This directory is ignored by version control.
+  </Step>
+</Steps>
+
+### Output Location
+
+Generated benchmarks are placed in:
+
+```
+benchmark/generated/<benchmark-name>/<filename>.nt
+```
+
+For example:
+```
+benchmark/generated/general/large_benchmark.nt
+```
+
+## Running Benchmarks
+
+After generating a benchmark file:
+
+```bash
+# Measure compilation time
+time ./compile.sh benchmark/generated/general/large_benchmark.nt
+
+# Or compile and run
+./run.sh benchmark/generated/general/large_benchmark.nt
+```
+
+## Why Multiple Variants?
+
+Having multiple variant files creates more diverse benchmarks:
+
+<Card title="Prevents Over-Optimization" icon="gauge">
+  Varied code patterns prevent the compiler from benefiting from:
+  - Branch prediction
+  - Cache effects
+  - Pattern-specific optimizations
+</Card>
+
+<Card title="Simulates Real Codebases" icon="code">
+  Real programs have diverse functions and control flow, not just repetitive patterns.
+</Card>
+
+<Card title="Tests All Compiler Stages" icon="layers">
+  Different variants exercise different aspects of:
+  - Lexing (varied formatting)
+  - Parsing (different syntax constructs)
+  - Semantic analysis (type inference patterns)
+  - Code generation (optimization opportunities)
+</Card>
+
+## Best Practices
+
+<Steps>
+  <Step title="Use realistic code">
+    Write variants that resemble actual Neutronium programs with real language features.
+  </Step>
+  
+  <Step title="Vary complexity">
+    Create variants with different complexity levels - simple functions and complex logic.
+  </Step>
+  
+  <Step title="Test specific features">
+    Focus benchmarks on specific language features you want to measure (arrays, type inference, control flow).
+  </Step>
+  
+  <Step title="Use $ID$ consistently">
+    Apply `$ID$` to all identifiers that could conflict: functions, variables, types.
+  </Step>
+</Steps>

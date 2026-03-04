@@ -1,0 +1,201 @@
+---
+title: "Compiler architecture"
+description: "Understand Neutronium's compiler architecture and codebase structure"
+---
+
+The Neutronium compiler is written in C++23 and follows a traditional multi-stage compiler architecture. This guide explains the codebase structure and how each module contributes to the compilation pipeline.
+
+## Compiler Pipeline
+
+Neutronium processes source code through several stages:
+
+1. **Lexical Analysis** - Tokenizes source code into tokens
+2. **Parsing** - Builds an Abstract Syntax Tree (AST) from tokens
+3. **Semantic Analysis** - Type checking and semantic validation
+4. **Code Generation** - Produces executable output
+
+Each stage is implemented in its own module within the `src/` directory.
+
+## Directory Structure
+
+The compiler source code is organized into the following modules:
+
+### Core Compilation Modules
+
+<Card title="ast/" icon="tree">
+  **Abstract Syntax Tree**
+  
+  Defines the AST node structures that represent the parsed program. Contains:
+  - `AST.cpp` - AST node definitions and constructors
+  - `Debug.cpp` - AST debugging and visualization utilities
+  
+  The AST represents the syntactic structure of Neutronium programs after parsing.
+</Card>
+
+<Card title="lex/" icon="text">
+  **Lexical Analyzer**
+  
+  Tokenizes source code into a stream of tokens. Contains:
+  - `Lexer.cpp` - Main lexer implementation
+  - `TokenKind.cpp` - Token type definitions and utilities
+  
+  The lexer reads raw source text and produces tokens like identifiers, keywords, operators, and literals.
+</Card>
+
+<Card title="parse/" icon="brackets-curly">
+  **Parser**
+  
+  Builds the AST from the token stream. Contains:
+  - `Parser.cpp` - Recursive descent parser implementation
+  - `ParsingError.cpp` - Parse error handling and reporting
+  
+  The parser implements Neutronium's grammar and constructs the AST.
+</Card>
+
+<Card title="sema/" icon="check">
+  **Semantic Analyzer**
+  
+  Performs type checking and semantic validation. Contains:
+  - `SemanticAnalyser.cpp` - Type checking and semantic analysis
+  
+  This module validates that the program is semantically correct, including type compatibility, variable declarations, and control flow.
+</Card>
+
+<Card title="codegen/" icon="code">
+  **Code Generator**
+  
+  Generates executable output from the validated AST. Contains:
+  - `Generator.cpp` - Code generation implementation
+  
+  The code generator produces the final executable from the type-checked AST.
+</Card>
+
+### Support Modules
+
+<Card title="type/" icon="diamond">
+  **Type System**
+  
+  Represents and manages types in the compiler. Contains:
+  - `Type.cpp` - Type representations (int, bool, arrays, etc.)
+  - `Trait.cpp` - Type traits and properties
+  - `inference/` - Type inference subsystem
+  
+  Handles Neutronium's type system including primitives, arrays, and type inference.
+</Card>
+
+<Card title="source/" icon="file">
+  **Source Management**
+  
+  Manages source files and locations. Contains:
+  - `SourceFile.cpp` - Source file representation
+  - `SourceManager.cpp` - Source file management and tracking
+  
+  Tracks source files, line numbers, and column positions for error reporting.
+</Card>
+
+<Card title="diagnostics/" icon="triangle-exclamation">
+  **Diagnostics**
+  
+  Error and warning reporting system. Contains:
+  - `DiagnosticsPrinter.cpp` - Formatted error and warning output
+  
+  Produces user-friendly error messages with source locations and context.
+</Card>
+
+<Card title="driver/" icon="terminal">
+  **Compiler Driver**
+  
+  Command-line interface and orchestration. Contains:
+  - `main.cpp` - Entry point
+  - `Cli.cpp` - Command-line argument parsing
+  - `utils/` - Utility functions
+  
+  Coordinates the compilation pipeline and handles CLI interactions.
+</Card>
+
+<Card title="lib/" icon="book">
+  **Standard Library**
+  
+  Built-in runtime library functions available to Neutronium programs.
+</Card>
+
+## Build System
+
+Neutronium uses **CMake 3.28+** as its build system with the following configuration:
+
+### Language Standard
+
+- **C++23** with GNU extensions enabled
+- Requires modern compiler (Clang recommended, GCC supported)
+
+### External Dependencies
+
+The build system automatically fetches these dependencies using `FetchContent`:
+
+<Steps>
+  <Step title="cxxopts">
+    Command-line option parsing library (v3.3.1)
+    
+    Used by the compiler driver for CLI argument handling.
+  </Step>
+  
+  <Step title="magic_enum">
+    Static reflection for enums (v0.9.7)
+    
+    Provides enum-to-string utilities for debugging and diagnostics.
+  </Step>
+  
+  <Step title="GoogleTest">
+    Testing framework (v1.17.0)
+    
+    Used for the compiler's test suite.
+  </Step>
+</Steps>
+
+### Build Types
+
+CMake supports three build configurations:
+
+| Build Type | Optimization | Debug Symbols | Sanitizers | Use Case |
+|------------|-------------|---------------|------------|----------|
+| `Debug` | `-O0` | Yes (`-g3`) | ASan + UBSan | Development |
+| `RelWithDebInfo` | `-O3` | Yes (`-g3`) | No | Profiling |
+| `Release` | `-O3` | No | No | Production |
+
+<Note>
+  The Debug build includes Address Sanitizer and Undefined Behavior Sanitizer to catch memory errors and undefined behavior during development.
+</Note>
+
+### Compiler Selection
+
+You can choose between GCC and Clang:
+
+```bash
+# Use Clang (recommended)
+cmake -DCOMPILER=clang ..
+
+# Use GCC
+cmake -DCOMPILER=gcc ..
+```
+
+<Note>
+  Clang is the primary tested compiler and includes additional diagnostics flags like `-fdiagnostics-show-template-tree` and `-fstandalone-debug`.
+</Note>
+
+### Build Outputs
+
+The build system produces two targets:
+
+1. **`neutronium_lib`** - Shared library containing all compiler modules
+2. **`neutronium`** - Executable compiler binary
+
+All source files except `src/driver/main.cpp` are compiled into `neutronium_lib`, which is then linked into the `neutronium` executable.
+
+## Code Standards
+
+The project includes configuration files for code quality:
+
+- **`.clang-format`** - Code formatting standards
+- **`.clang-tidy`** - Static analysis rules
+
+These ensure consistent code style across the codebase.

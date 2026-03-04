@@ -1,0 +1,278 @@
+---
+title: "Math functions"
+description: "Mathematical operations in Neutronium's standard library"
+---
+
+Neutronium's standard library provides essential mathematical functions for common operations. All functions work with integer types.
+
+## Declaring math functions
+
+To use math functions, declare them with the `extern fn` keyword:
+
+```neutronium
+extern fn mod(a: int, b: int) -> int;
+extern fn abs(val: int) -> int;
+extern fn min(a: int, b: int) -> int;
+extern fn max(a: int, b: int) -> int;
+extern fn pow(a: int, b: int) -> int;
+```
+
+## mod
+
+Returns the modulo (remainder) of a divided by b.
+
+```neutronium
+extern fn mod(a: int, b: int) -> int;
+```
+
+<ParamField path="a" type="int" required>
+  The dividend. Can be positive or negative.
+</ParamField>
+
+<ParamField path="b" type="int" required>
+  The divisor. Must be positive (undefined behavior if non-positive).
+</ParamField>
+
+<ResponseField name="return" type="int">
+  The remainder of a divided by b. Will be negative if a is negative.
+</ResponseField>
+
+### Implementation
+
+```neutronium
+# Returns a modulo b, undefined if b is non-positive, negative if a is negative
+export fn mod(a: int, b: int) -> int: {
+    return a - (a / b) * b;
+}
+```
+
+### Example
+
+```neutronium
+extern fn mod(a: int, b: int) -> int;
+extern fn print_num(num: int);
+
+fn main(): {
+    let result = mod(17, 5);  # Returns 2
+    print_num(result);
+    
+    let m = mod(256, 7);  # Returns 4
+    print_num(m);
+}
+```
+
+## abs
+
+Returns the absolute value of an integer.
+
+```neutronium
+extern fn abs(val: int) -> int;
+```
+
+<ParamField path="val" type="int" required>
+  The value to get the absolute value of.
+</ParamField>
+
+<ResponseField name="return" type="int">
+  The absolute (non-negative) value of val.
+</ResponseField>
+
+### Implementation
+
+```neutronium
+# Returns the absolute value of a
+export fn abs(val: int) -> int: {
+    if val < 0: {
+        return -val;
+    }
+    return val;
+}
+```
+
+### Example
+
+```neutronium
+extern fn abs(val: int) -> int;
+extern fn print_num(num: int);
+
+fn computeValue(x: int, y: int) -> int: {
+    let diff = abs(x - y);
+    return diff * 2;
+}
+
+fn main(): {
+    let a = abs(-42);    # Returns 42
+    let b = abs(15);     # Returns 15
+    
+    let result = computeValue(12, 4);  # diff = abs(8) = 8
+    print_num(result);  # Outputs: 16
+}
+```
+
+## min
+
+Returns the smaller of two values.
+
+```neutronium
+extern fn min(a: int, b: int) -> int;
+```
+
+<ParamField path="a" type="int" required>
+  The first value to compare.
+</ParamField>
+
+<ParamField path="b" type="int" required>
+  The second value to compare.
+</ParamField>
+
+<ResponseField name="return" type="int">
+  The smaller of the two values.
+</ResponseField>
+
+### Implementation
+
+```neutronium
+# Returns the minimum of a and b
+export fn min(a: int, b: int) -> int: {
+    if a < b: {
+        return a;
+    }
+    return b;
+}
+```
+
+### Example
+
+```neutronium
+extern fn min(a: int, b: int) -> int;
+extern fn print_num(num: int);
+
+fn main(): {
+    let smaller = min(42, 17);  # Returns 17
+    print_num(smaller);
+    
+    let result = min(-5, 10);   # Returns -5
+    print_num(result);
+}
+```
+
+## max
+
+Returns the larger of two values.
+
+```neutronium
+extern fn max(a: int, b: int) -> int;
+```
+
+<ParamField path="a" type="int" required>
+  The first value to compare.
+</ParamField>
+
+<ParamField path="b" type="int" required>
+  The second value to compare.
+</ParamField>
+
+<ResponseField name="return" type="int">
+  The larger of the two values.
+</ResponseField>
+
+### Implementation
+
+```neutronium
+# Returns the maximum of a and b
+export fn max(a: int, b: int) -> int: {
+    if a > b: {
+        return a;
+    }
+    return b;
+}
+```
+
+### Example
+
+```neutronium
+extern fn max(a: int, b: int) -> int;
+extern fn pow(a: int, b: int) -> int;
+extern fn mod(a: int, b: int) -> int;
+extern fn print_num(num: int);
+
+fn main(): {
+    # Calculate 2^8 = 256
+    let p = pow(2, 8);
+    
+    # Get 256 mod 7 = 4
+    let m = mod(p, 7);
+    
+    # Get the larger value
+    let v = max(p, m);  # Returns 256
+    print_num(v);
+}
+```
+
+## pow
+
+Returns a raised to the power of b (a^b).
+
+```neutronium
+extern fn pow(a: int, b: int) -> int;
+```
+
+<ParamField path="a" type="int" required>
+  The base value.
+</ParamField>
+
+<ParamField path="b" type="int" required>
+  The exponent. Must be non-negative (undefined behavior if negative).
+</ParamField>
+
+<ResponseField name="return" type="int">
+  The result of a raised to the power of b.
+</ResponseField>
+
+### Implementation
+
+```neutronium
+# Returns a^b (a to the power of b), undefined if b is negative
+export fn pow(a: int, b: int) -> int: {
+    let mut result = 1;
+    let mut i = 0;
+    while i < b: {
+        result = result * a;
+        i = i + 1;
+    }
+    return result;
+}
+```
+
+### Example
+
+```neutronium
+extern fn pow(a: int, b: int) -> int;
+extern fn abs(val: int) -> int;
+extern fn print_num(num: int);
+
+fn computeValue(x: int, y: int) -> int: {
+    let diff = abs(x - y);
+    let power = pow(diff, 2);
+    return power / 2;
+}
+
+fn mixLogic(flag: bool, base: int): {
+    let value = pow(base, 2);
+    if flag: {
+        print_num(value);
+    } else: {
+        print_num(abs(-value));
+    }
+}
+
+fn main(): {
+    let p = pow(2, 8);   # Returns 256
+    print_num(p);
+    
+    let result = computeValue(12, 4);  # pow(8, 2) / 2 = 32
+    print_num(result);
+    
+    mixLogic(true, 9);   # pow(9, 2) = 81
+}
+```

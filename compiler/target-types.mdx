@@ -1,0 +1,314 @@
+---
+title: "Target types"
+description: "Compile executables or libraries with Neutronium"
+---
+
+The Neutronium compiler supports two target types: executables and libraries. The target type determines how your code is compiled and what output is generated.
+
+## Specifying Target Type
+
+Use the `--target-type` flag to specify the compilation target:
+
+```bash
+# Compile as executable (default)
+./compile.sh main.nt --target-type bin
+
+# Compile as library
+./compile.sh mylib.nt --target-type lib
+```
+
+**Accepted values:**
+- `bin` or `executable` → Compile to executable
+- `lib` or `library` → Compile to library object file
+
+**Default:** `bin`
+
+**Source:** `Cli.cpp:17` and `Cli.cpp:55-64`
+
+```cpp
+"target-type", "Compilation target: bin (executable) or lib (library)",
+cxxopts::value<std::string>()->default_value("bin")
+
+// Parsing logic
+if (targetType == "bin" || targetType == "executable") {
+    opts.targetType_ = TargetType::EXECUTABLE;
+} else if (targetType == "lib" || targetType == "library") {
+    opts.targetType_ = TargetType::LIBRARY;
+}
+```
+
+## Executable Target (`bin`)
+
+### Overview
+
+Executable compilation creates a complete, runnable program that can be executed directly from the command line.
+
+### Compilation Process
+
+When compiling as an executable:
+
+<Steps>
+  <Step title="Compile main source file">
+    Your source file is compiled through all pipeline stages (lex, parse, sema, codegen, assemble)
+  </Step>
+  
+  <Step title="Compile runtime library">
+    All Neutronium runtime files are compiled automatically
+    
+    - `.nt` files in `runtime/` are compiled as libraries
+    - `.asm` files in `runtime/` are assembled directly
+    
+    **Source:** `main.cpp:179-210`
+  </Step>
+  
+  <Step title="Link all object files">
+    All object files (your code + runtime) are linked into a single executable
+    
+    ```bash
+    ld -o neutro/out neutro/*.o
+    ```
+    
+    **Source:** `main.cpp:212-214`
+  </Step>
+</Steps>
+
+### Output Location
+
+**Executable path:** `neutro/out`
+
+**Source:** `main.cpp:152-153`
+
+```cpp
+if (opts.targetType_ == TargetType::EXECUTABLE) {
+    outFilename = "neutro/out.asm";
+}
+```
+
+The assembly is written to `neutro/out.asm`, assembled to `neutro/out.o`, and linked to `neutro/out`.
+
+### Example
+
+```bash
+# Compile and run
+./compile.sh examples/fibonacci.nt
+./neutro/out
+
+# Or use the run script
+./run.sh examples/fibonacci.nt
+```
+
+### When to Use
+
+Use executable target when:
+- Building a standalone application
+- Creating a program with a `main()` entry point
+- You need to run the compiled code directly
+
+## Library Target (`lib`)
+
+### Overview
+
+Library compilation creates reusable object files that can be linked into other programs. Libraries do not include a linking stage.
+
+### Compilation Process
+
+When compiling as a library:
+
+<Steps>
+  <Step title="Compile source file">
+    Your source file is compiled through lex, parse, sema, codegen, and assemble stages
+  </Step>
+  
+  <Step title="Generate object file">
+    The assembler creates a `.o` object file
+    
+    ```bash
+    as --64 neutro/<filename>.asm -o neutro/<filename>.o
+    ```
+  </Step>
+  
+  <Step title="Stop (no linking)">
+    The compilation stops here. No runtime compilation or linking occurs.
+  </Step>
+</Steps>
+
+### Output Location
+
+**Object file path:** `neutro/<source-filename>.o`
+
+**Source:** `main.cpp:155-158`
+
+```cpp
+else {
+    outFilename = "neutro/" + 
+        std::filesystem::path(sourceManager.getSourceFilePath(fileID))
+            .stem().string() + ".asm";
+}
+```
+
+For example:
+- `mylib.nt` → `neutro/mylib.o`
+- `utils.nt` → `neutro/utils.o`
+
+### Example
+
+```bash
+# Compile library
+./compile.sh src/utils.nt --target-type lib
+
+# Object file created at: neutro/utils.o
+# This can be linked into other programs
+```
+
+### When to Use
+
+Use library target when:
+- Building reusable code modules
+- Creating functions/types to be imported elsewhere
+- Compiling runtime library components
+- Building without a `main()` function
+
+## Runtime Compilation
+
+Executable targets automatically compile the Neutronium runtime library. This process is handled by the `compileRuntime` function.
+
+**Source:** `main.cpp:179-210`
+
+```cpp
+void compileRuntime(SourceManager& sourceManager) {
+    const std::filesystem::path runtimePath = 
+        std::filesystem::path(PROJECT_ROOT_DIR) / "runtime";
+    
+    for (const auto& entry : std::filesystem::recursive_directory_iterator(runtimePath)) {
+        if (!entry.is_regular_file()) continue;
+        
+        const std::string extension = entry.path().extension();
+        
+        if (extension == ".nt") {
+            // Compile .nt files as libraries
+            compileFile(
+                CompilerOptions{
+                    .sourceFilename_ = std::move(src),
+                    .targetType_ = TargetType::LIBRARY,
+                },
+                sourceManager, false);
+        } else if (extension == ".asm") {
+            // Assemble .asm files directly
+            runOrDie(std::format("as --64 {} -o {}", src, obj));
+        }
+    }
+}
+```
+
+### Runtime Files
+
+The runtime directory may contain:
+- **Neutronium files (`.nt`)**: Compiled as library objects
+- **Assembly files (`.asm`)**: Assembled directly with `as --64`
+
+All runtime objects are placed in `neutro/` and linked with your program.
+
+<Note>
+  Runtime compilation is skipped when:
+  - Using `--target-type lib`
+  - Using any `--only-*` pipeline control flag
+  
+  **Source:** `main.cpp:229-232`
+</Note>
+
+## Target Type in Semantic Analysis
+
+The target type is passed to the semantic analyzer, which may enforce different rules for executables vs libraries:
+
+**Source:** `main.cpp:135`
+
+```cpp
+SemanticAnalyser sema(*ast, opts.targetType_, diagnosticsEngine, fileID, typeManager);
+```
+
+For example, the semantic analyzer might:
+- Require a `main()` function for executables
+- Allow missing `main()` for libraries
+- Enforce different visibility rules
+
+## Comparison Table
+
+| Feature | Executable (`bin`) | Library (`lib`) |
+|---------|-------------------|------------------|
+| **Output** | `neutro/out` | `neutro/<filename>.o` |
+| **Linking** | Yes (with runtime) | No |
+| **Runtime compilation** | Yes | No |
+| **Can be executed** | Yes | No |
+| **Requires `main()`** | Yes (enforced by sema) | No |
+| **Use case** | Standalone programs | Reusable modules |
+
+## Examples
+
+<CodeGroup>
+```bash Executable
+# Compile standalone program
+./compile.sh main.nt
+
+# Run it
+./neutro/out
+
+# Or compile and run in one step
+./run.sh main.nt
+```
+
+```bash Library
+# Compile reusable module
+./compile.sh utils.nt --target-type lib
+
+# Object file: neutro/utils.o
+# Can be linked into other programs
+```
+
+```bash Multiple Libraries
+# Compile multiple library modules
+./compile.sh math.nt --target-type lib
+./compile.sh io.nt --target-type lib
+
+# Objects: neutro/math.o, neutro/io.o
+# Link manually with your main program
+ld -o myapp neutro/main.o neutro/math.o neutro/io.o
+```
+</CodeGroup>
+
+## Output Directory Structure
+
+### Executable Compilation
+
+```
+neutro/
+├── out              # Final executable
+├── out.o            # Main object file
+├── out.asm          # Main assembly (intermediate)
+├── runtime_func.o   # Runtime object 1
+├── runtime_io.o     # Runtime object 2
+└── ...              # Other runtime objects
+```
+
+### Library Compilation
+
+```
+neutro/
+├── mylib.asm        # Assembly (intermediate)
+└── mylib.o          # Final object file
+```
+
+<Note>
+  The `neutro/` directory is cleaned and recreated on each compilation run
+  
+  **Source:** `main.cpp:223`
+  
+  ```bash
+  rm -rf neutro && mkdir neutro
+  ```
+</Note>
+
+## Related Pages
+
+- [CLI Reference](/compiler/cli-reference) - All compiler options
+- [Compilation Pipeline](/compiler/compilation-pipeline) - Understand the compilation stages
+- [Debugging Options](/compiler/debugging-options) - Debug your compilation

@@ -1,0 +1,316 @@
+---
+title: Functions
+description: Define and call functions in Neutronium
+---
+
+Functions are the primary building blocks of Neutronium programs. They are declared with the `fn` keyword and can be exported or imported from other modules.
+
+## Function Definition
+
+Define a function with parameters and an optional return type:
+
+```neutronium
+fn add(x: int, y: int) -> int: {
+    return x + y;
+}
+```
+
+### Functions Without Return Values
+
+Omit the return type arrow for functions that don't return values:
+
+```neutronium
+fn greet(name: int): {
+    print_num(name);
+}
+```
+
+### Function Signature Grammar
+
+```ebnf
+function-signature ::= identifier '(' parameter-list ')' [ '->' type-specifier ]
+function-definition ::= [ 'export' ] 'fn' function-signature ':' block-statement
+```
+
+## Parameters
+
+Function parameters require explicit type annotations:
+
+```neutronium
+fn compute(x: int, y: int, flag: bool) -> int: {
+    if flag: {
+        return x + y;
+    }
+    return x - y;
+}
+```
+
+### Mutable Parameters
+
+Parameters can be marked as mutable with the `mut` keyword:
+
+```neutronium
+fn process(mut value: int) -> int: {
+    value = value * 2;
+    return value;
+}
+```
+
+### Parameter Grammar
+
+```ebnf
+parameter-list ::= [ parameter-declaration { ',' parameter-declaration } ]
+parameter-declaration ::= [ 'mut' ] identifier ':' type-specifier
+```
+
+<Note>
+All function parameters must have explicit type annotations. Type inference only applies to local variables.
+</Note>
+
+## Function Calls
+
+Call a function with arguments matching its parameters:
+
+```neutronium
+let result = add(5, 10);
+greet(42);
+let power = pow(2, 8);
+```
+
+### Call Grammar
+
+```ebnf
+function-call ::= identifier '(' expression-list ')'
+expression-list ::= [ expression { ',' expression } ]
+```
+
+## Return Values
+
+Use `return` to exit a function and optionally return a value:
+
+```neutronium
+fn getValue() -> int: {
+    return 42;
+}
+
+fn doWork(): {
+    # Perform some operation
+    return;  # Exit without value
+}
+```
+
+## Export Keyword
+
+Use `export` to make a function available to other modules:
+
+```neutronium
+export fn abs(val: int) -> int: {
+    if val < 0: {
+        return -val;
+    }
+    return val;
+}
+
+export fn mod(a: int, b: int) -> int: {
+    return a - (a / b) * b;
+}
+```
+
+<Note>
+The `export` keyword makes functions part of the module's public API. Functions without `export` are private to the module.
+</Note>
+
+## External Functions
+
+Declare external functions from other modules or libraries using `extern fn`:
+
+```neutronium
+# I/O functions from standard library
+extern fn print_c(char: int);
+extern fn print_num(num: int);
+
+# Math functions from standard library
+extern fn mod(a: int, b: int) -> int;
+extern fn abs(val: int) -> int;
+extern fn pow(a: int, b: int) -> int;
+```
+
+### External Function Grammar
+
+```ebnf
+external-function-declaration ::= 'extern' 'fn' function-signature ';'
+```
+
+<Warning>
+External function declarations end with a semicolon (`;`), not a colon and block. They only declare the signature, not the implementation.
+</Warning>
+
+## Real-World Examples
+
+### Math Library Functions
+
+```neutronium
+# Returns the absolute value of a
+export fn abs(val: int) -> int: {
+    if val < 0: {
+        return -val;
+    }
+    return val;
+}
+
+# Returns the minimum of a and b
+export fn min(a: int, b: int) -> int: {
+    if a < b: {
+        return a;
+    }
+    return b;
+}
+
+# Returns the maximum of a and b
+export fn max(a: int, b: int) -> int: {
+    if a > b: {
+        return a;
+    }
+    return b;
+}
+
+# Returns a^b (a to the power of b)
+export fn pow(a: int, b: int) -> int: {
+    let mut result = 1;
+    let mut i = 0;
+    while i < b: {
+        result = result * a;
+        i = i + 1;
+    }
+    return result;
+}
+```
+
+### Helper Functions
+
+```neutronium
+# A helper returning a computed result
+fn computeValue(x: int, y: int) -> int: {
+    let diff = abs(x - y);
+    let power = pow(diff, 2);
+    return power / 2;
+}
+
+# Another helper with mixed logic
+fn mixLogic(flag: bool, base: int): {
+    let value = pow(base, 2);
+    if flag: {
+        print_num(value);
+    } else: {
+        print_num(abs(-value));
+    }
+}
+```
+
+### Using External Functions
+
+```neutronium
+# Declare external functions
+extern fn print_num(num: int);
+extern fn pow(a: int, b: int) -> int;
+extern fn mod(a: int, b: int) -> int;
+extern fn max(a: int, b: int) -> int;
+
+fn main(): {
+    # Call external functions
+    let p = pow(2, 8);
+    let m = mod(p, 7);
+    let v = max(p, m);
+    print_num(v);
+}
+```
+
+## Entry Point
+
+The `main` function serves as the program entry point:
+
+```neutronium
+fn main(): {
+    let x = 42;
+    print_num(x);
+}
+```
+
+<Note>
+While `main` is conventionally used as the entry point, Neutronium doesn't require a specific function name for program execution.
+</Note>
+
+## Best Practices
+
+<Accordion title="Single responsibility">
+
+Each function should do one thing well:
+
+**Good:**
+```neutronium
+fn calculateSquare(x: int) -> int: {
+    return x * x;
+}
+
+fn printSquare(x: int): {
+    let result = calculateSquare(x);
+    print_num(result);
+}
+```
+
+**Avoid:**
+```neutronium
+fn calculateAndPrintSquare(x: int): {
+    let result = x * x;
+    print_num(result);
+}
+```
+
+</Accordion>
+
+<Accordion title="Descriptive names">
+
+Function names should describe what they do:
+
+**Good:**
+```neutronium
+fn calculateDistance(x1: int, y1: int, x2: int, y2: int) -> int
+fn isPositive(value: int) -> bool
+fn formatOutput(data: int)
+```
+
+**Avoid:**
+```neutronium
+fn calc(x1: int, y1: int, x2: int, y2: int) -> int
+fn check(value: int) -> bool
+fn doStuff(data: int)
+```
+
+</Accordion>
+
+<Accordion title="Early returns for clarity">
+
+Return early for special cases:
+
+**Good:**
+```neutronium
+export fn abs(val: int) -> int: {
+    if val < 0: {
+        return -val;
+    }
+    return val;
+}
+```
+
+**Less clear:**
+```neutronium
+export fn abs(val: int) -> int: {
+    let mut result = val;
+    if val < 0: {
+        result = -val;
+    }
+    return result;
+}
+```
+
+</Accordion>

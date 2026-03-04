@@ -1,97 +1,239 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: Welcome to Neutronium
+description: A lightweight C-like programming language compiler built for education and performance
+mode: custom
 ---
 
-## Setting up
+<div className="relative overflow-hidden dark:bg-[#0f1117] bg-white py-20">
+  <div className="max-w-7xl mx-auto px-6 lg:px-8">
+    <div className="lg:grid lg:grid-cols-12 lg:gap-8 items-center">
+      <div className="lg:col-span-7">
+        <h1 className="text-5xl sm:text-6xl font-bold dark:text-gray-100 text-gray-900 mb-6">
+          Build with Neutronium
+        </h1>
+        <p className="text-xl dark:text-gray-400 text-gray-600 max-w-2xl mb-8">
+          A modern C-like programming language with a powerful compiler toolchain. Learn the fundamentals of language design through hands-on development with clean syntax and performant code generation.
+        </p>
+        <div className="flex flex-wrap gap-4">
+          <a
+            href="/quickstart"
+            className="inline-flex items-center px-6 py-3 rounded-lg bg-[#f41c7c] text-white font-semibold hover:bg-[#d01868] transition-colors no-underline"
+          >
+            Get Started
+          </a>
+          <a
+            href="/language/syntax"
+            className="inline-flex items-center px-6 py-3 rounded-lg border dark:border-white/30 border-gray-300 dark:bg-white/10 bg-gray-50 dark:text-white text-gray-900 font-semibold dark:hover:bg-white/20 hover:bg-gray-100 transition-colors no-underline"
+          >
+            Language Reference
+          </a>
+        </div>
+      </div>
+      <div className="hidden lg:block lg:col-span-5">
+        <div className="dark:bg-[#1a1d27] bg-gray-50 rounded-2xl p-6 dark:border-[#27272a] border-gray-200 border">
+          <pre className="text-sm overflow-x-auto"><code className="dark:text-gray-300 text-gray-800">{`fn factorial(n: int) -> int: {
+    if n <= 1: {
+        return 1;
+    }
+    return n * factorial(n - 1);
+}
 
-Get your documentation site up and running in minutes.
+fn main(): {
+    let result = factorial(5);
+    print_num(result);
+}`}</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-3xl font-semibold dark:text-white text-gray-900 mb-4">
+    Quick start
+  </h2>
+  <p className="text-base dark:text-gray-400 text-gray-600 mb-8">
+    Get up and running with Neutronium in minutes
+  </p>
 
-## Make it yours
+  <Steps>
+    <Step title="Install dependencies">
+      Install the required build tools on Ubuntu/Debian:
 
-Design a docs site that looks great and empowers your users.
+      ```bash
+      sudo apt update
+      sudo apt install build-essential cmake ninja-build
+      ```
 
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
-  </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
-  </Card>
+      Make sure your `cmake` version is at least 3.28.
+    </Step>
+
+    <Step title="Clone and configure">
+      Clone the Neutronium repository and set up the build scripts:
+
+      ```bash
+      git clone https://github.com/Thibault-Monnier/neutronium.git
+      cd neutronium
+      chmod +x configure-cmake.sh compile.sh run.sh test.sh
+      ./configure-cmake.sh
+      ```
+    </Step>
+
+    <Step title="Write your first program">
+      Create a simple Neutronium program:
+
+      ```neutronium hello.nt
+      extern fn print_num(num: int);
+
+      fn main(): {
+          let message = 42;
+          print_num(message);
+      }
+      ```
+    </Step>
+
+    <Step title="Compile and run">
+      Use the `run.sh` script to compile and execute your program:
+
+      ```bash
+      ./run.sh hello.nt
+      ```
+
+      The compiler will build your program and run it, outputting `42` to the console.
+    </Step>
+  </Steps>
+</div>
+
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-3xl font-semibold dark:text-white text-gray-900 mb-4">
+    Explore by topic
+  </h2>
+  <p className="text-base dark:text-gray-400 text-gray-600 mb-8">
+    Deep dive into Neutronium's features and capabilities
+  </p>
+
+  <CardGroup cols={2}>
     <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
-  </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
-  </Card>
-</Columns>
+      title="Language syntax"
+      icon="code"
+      href="/language/syntax"
+    >
+      Learn the grammar and syntax rules of Neutronium's C-like language
+    </Card>
+    <Card
+      title="Type system"
+      icon="list-check"
+      href="/language/types"
+    >
+      Explore Neutronium's static type system with type inference
+    </Card>
+    <Card
+      title="Compiler CLI"
+      icon="terminal"
+      href="/compiler/cli-reference"
+    >
+      Master the compiler command-line interface and options
+    </Card>
+    <Card
+      title="Standard library"
+      icon="book-open"
+      href="/stdlib/overview"
+    >
+      Discover built-in I/O and math functions available in your programs
+    </Card>
+  </CardGroup>
+</div>
 
-## Create beautiful pages
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-3xl font-semibold dark:text-white text-gray-900 mb-4">
+    Key features
+  </h2>
+  <p className="text-base dark:text-gray-400 text-gray-600 mb-8">
+    What makes Neutronium unique
+  </p>
 
-Everything you need to create world-class documentation.
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="dark:bg-[#1a1d27] bg-gray-50 rounded-xl p-6 dark:border-[#27272a] border-gray-200 border">
+      <h3 className="text-lg font-semibold dark:text-white text-gray-900 mb-2">
+        Multi-stage compilation
+      </h3>
+      <p className="text-sm dark:text-gray-400 text-gray-600">
+        Complete pipeline from lexing through parsing, semantic analysis, to x86-64 assembly code generation
+      </p>
+    </div>
+    <div className="dark:bg-[#1a1d27] bg-gray-50 rounded-xl p-6 dark:border-[#27272a] border-gray-200 border">
+      <h3 className="text-lg font-semibold dark:text-white text-gray-900 mb-2">
+        Powerful debugging
+      </h3>
+      <p className="text-sm dark:text-gray-400 text-gray-600">
+        Comprehensive CLI options to log tokens, AST, assembly, and debug each compilation stage independently
+      </p>
+    </div>
+    <div className="dark:bg-[#1a1d27] bg-gray-50 rounded-xl p-6 dark:border-[#27272a] border-gray-200 border">
+      <h3 className="text-lg font-semibold dark:text-white text-gray-900 mb-2">
+        Educational focus
+      </h3>
+      <p className="text-sm dark:text-gray-400 text-gray-600">
+        Built as an educational project with clear architecture and comprehensive documentation
+      </p>
+    </div>
+    <div className="dark:bg-[#1a1d27] bg-gray-50 rounded-xl p-6 dark:border-[#27272a] border-gray-200 border">
+      <h3 className="text-lg font-semibold dark:text-white text-gray-900 mb-2">
+        Modern language design
+      </h3>
+      <p className="text-sm dark:text-gray-400 text-gray-600">
+        C-like syntax with modern features like type inference, arrays, and a clean export/import system
+      </p>
+    </div>
+  </div>
+</div>
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-3xl font-semibold dark:text-white text-gray-900 mb-4">
+    Resources
+  </h2>
+  <p className="text-base dark:text-gray-400 text-gray-600 mb-8">
+    Learn more and contribute to Neutronium
+  </p>
 
-## Need inspiration?
+  <CardGroup cols={3}>
+    <Card
+      title="Compilation pipeline"
+      icon="diagram-project"
+      href="/compiler/compilation-pipeline"
+    >
+      Understand how Neutronium transforms source code into executables
+    </Card>
+    <Card
+      title="Benchmarking"
+      icon="gauge-high"
+      href="/advanced/benchmarking"
+    >
+      Learn how to create and run performance benchmarks
+    </Card>
+    <Card
+      title="Contributing"
+      icon="code-pull-request"
+      href="/advanced/contributing"
+    >
+      Join the development and help build Neutronium's future
+    </Card>
+  </CardGroup>
+</div>
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+<div className="mt-20 mb-16 max-w-5xl mx-auto px-6">
+  <div className="dark:bg-[#1a1d27] bg-gray-50 rounded-2xl p-8 dark:border-[#27272a] border-gray-200 border text-center">
+    <h2 className="text-2xl font-semibold dark:text-white text-gray-900 mb-4">
+      Ready to start building?
+    </h2>
+    <p className="text-base dark:text-gray-400 text-gray-600 mb-6 max-w-2xl mx-auto">
+      Follow the quickstart guide to write and compile your first Neutronium program in minutes.
+    </p>
+    <a
+      href="/quickstart"
+      className="inline-flex items-center px-6 py-3 rounded-lg bg-[#f41c7c] text-white font-semibold hover:bg-[#d01868] transition-colors no-underline"
+    >
+      Get Started
+    </a>
+  </div>
+</div>

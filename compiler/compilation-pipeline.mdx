@@ -1,0 +1,273 @@
+---
+title: "Compilation pipeline"
+description: "Understand Neutronium's multi-stage compilation process"
+---
+
+The Neutronium compiler uses a multi-stage pipeline to transform source code into executable binaries. Each stage can be inspected individually using CLI flags, making it easy to debug and understand the compilation process.
+
+## Pipeline Overview
+
+The compilation pipeline consists of seven distinct stages:
+
+<Steps>
+  <Step title="Loading">
+    Load the source file from disk into memory
+    
+    The source manager reads the input file and assigns it a unique FileID for diagnostics and error reporting.
+  </Step>
+  
+  <Step title="Lexing">
+    Tokenize the source code into a stream of tokens
+    
+    The lexer breaks down the raw text into meaningful tokens (keywords, identifiers, operators, literals, etc.).
+    
+    **Stop at this stage:** `--only-lex`
+    
+    ```bash
+    ./compile.sh program.nt --only-lex --log-tokens
+    ```
+  </Step>
+  
+  <Step title="Parsing">
+    Build an Abstract Syntax Tree (AST) from tokens
+    
+    The parser constructs a tree representation of the program structure according to Neutronium's grammar rules.
+    
+    **Stop at this stage:** `--only-parse`
+    
+    ```bash
+    ./compile.sh program.nt --only-parse --log-ast
+    ```
+  </Step>
+  
+  <Step title="Semantic Analysis">
+    Validate program semantics and perform type checking
+    
+    The semantic analyzer checks for type errors, undefined variables, function signature mismatches, and other semantic issues.
+    
+    **Stop at this stage:** `--only-sema`
+    
+    ```bash
+    ./compile.sh program.nt --only-sema
+    ```
+  </Step>
+  
+  <Step title="Code Generation">
+    Generate x86-64 assembly code from the AST
+    
+    The code generator traverses the AST and emits corresponding x86-64 assembly instructions.
+    
+    **Stop at this stage:** `--only-codegen`
+    
+    ```bash
+    ./compile.sh program.nt --only-codegen --log-assembly
+    ```
+  </Step>
+  
+  <Step title="Assembling">
+    Convert assembly to object files using GNU Assembler
+    
+    The `as --64` assembler translates the `.asm` files into machine code object files (`.o`).
+    
+    This stage runs automatically unless you stop earlier with a pipeline control flag.
+  </Step>
+  
+  <Step title="Linking">
+    Link object files into final executable
+    
+    The GNU linker (`ld`) combines all object files (including runtime libraries) into the final executable at `neutro/out`.
+    
+    This stage only runs for executable targets (`--target-type bin`).
+  </Step>
+</Steps>
+
+## Pipeline Flow Diagram
+
+```
+┌─────────────┐
+│   Loading   │  Load source file from disk
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│   Lexing    │  Source code → Tokens
+└──────┬──────┘  (--only-lex stops here)
+       │
+       ▼
+┌─────────────┐
+│   Parsing   │  Tokens → AST
+└──────┬──────┘  (--only-parse stops here)
+       │
+       ▼
+┌─────────────┐
+│  Semantic   │  Type checking & validation
+│  Analysis   │  (--only-sema stops here)
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│    Code     │  AST → Assembly
+│ Generation  │  (--only-codegen stops here)
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ Assembling  │  Assembly → Object files
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│  Linking    │  Object files → Executable
+└─────────────┘  (Only for --target-type bin)
+```
+
+## Stopping at Each Stage
+
+You can halt compilation at any stage to inspect intermediate output:
+
+<CodeGroup>
+```bash Lexing Only
+# Stop after tokenization
+./compile.sh program.nt --only-lex --log-tokens
+
+# Output: Stream of token kinds
+```
+
+```bash Parsing Only
+# Stop after AST generation
+./compile.sh program.nt --only-parse --log-ast
+
+# Output: Abstract Syntax Tree structure
+```
+
+```bash Semantic Analysis Only
+# Stop after type checking
+./compile.sh program.nt --only-sema
+
+# Output: Semantic errors (if any)
+```
+
+```bash Code Generation Only
+# Stop after assembly generation
+./compile.sh program.nt --only-codegen --log-assembly
+
+# Output: x86-64 assembly code
+# Files created: neutro/<filename>.asm
+```
+</CodeGroup>
+
+## Stage Implementation Details
+
+### Loading Stage
+
+**Source:** `main.cpp:88-91`
+
+The source manager loads the file and returns a FileID and string view of the contents:
+
+```cpp
+std::tie(fileID, fileContents) = 
+    sourceManager.loadNewSourceFile(std::move(opts.sourceFilename_));
+```
+
+### Lexing Stage
+
+**Source:** `main.cpp:104-114`
+
+The lexer processes the source character by character, producing tokens:
+
+```cpp
+Lexer lexer(fileContents, diagnosticsEngine, fileID);
+Token token = lexer.lex();
+while (token.kind() != TokenKind::EOF_) {
+    token = lexer.lex();
+}
+```
+
+### Parsing Stage
+
+**Source:** `main.cpp:122-127`
+
+The parser builds an AST using an arena allocator for efficient memory management:
+
+```cpp
+Parser parser(diagnosticsEngine, fileID, fileContents, astArena, typeManager);
+AST::CompilationUnit* ast = parser.parse();
+```
+
+### Semantic Analysis Stage
+
+**Source:** `main.cpp:132-137`
+
+The semantic analyzer validates the AST and performs type checking:
+
+```cpp
+SemanticAnalyser sema(*ast, opts.targetType_, diagnosticsEngine, fileID, typeManager);
+sema.analyse();
+```
+
+### Code Generation Stage
+
+**Source:** `main.cpp:141-146`
+
+The code generator emits x86-64 assembly:
+
+```cpp
+CodeGen::Generator generator(*ast, typeManager, opts.targetType_);
+auto assembly = generator.generate();
+```
+
+### Assembling Stage
+
+**Source:** `main.cpp:172-176`
+
+The GNU Assembler converts `.asm` to `.o` object files:
+
+```bash
+as --64 neutro/<filename>.asm -o neutro/<filename>.o
+```
+
+### Linking Stage
+
+**Source:** `main.cpp:212-214`
+
+The GNU linker combines all object files:
+
+```bash
+ld -o neutro/out neutro/*.o
+```
+
+## Runtime Compilation
+
+When compiling executables (`--target-type bin`), the compiler also builds the Neutronium runtime library. This includes:
+
+- All `.nt` files in the `runtime/` directory (compiled as libraries)
+- All `.asm` files in the `runtime/` directory (assembled directly)
+
+**Source:** `main.cpp:179-210`
+
+The runtime objects are linked together with your program to create the final executable.
+
+<Note>
+  Runtime compilation is skipped when using `--target-type lib` or any `--only-*` flag
+</Note>
+
+## Performance Timing
+
+The compiler tracks and displays timing information for each stage:
+
+```bash
+✓ Loading source file (2 ms)
+✓ Parsing (15 ms)
+✓ Semantic Analysis (8 ms)
+✓ Code Generation (23 ms)
+✓ Assembling (45 ms)
+✓ Building runtime (156 ms)
+✓ Linking (12 ms)
+== Compiled successfully in 261 ms! ==
+```
+
+## Related Pages
+
+- [CLI Reference](/compiler/cli-reference) - All compiler options
+- [Debugging Options](/compiler/debugging-options) - Inspect each stage
+- [Target Types](/compiler/target-types) - Executable vs library compilation

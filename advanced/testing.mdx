@@ -1,0 +1,322 @@
+---
+title: "Testing"
+description: "Run and write tests for Neutronium"
+---
+
+Neutronium uses GoogleTest as its testing framework. This guide explains how to run tests and write new ones for the compiler.
+
+## Running Tests
+
+To build and run the entire test suite:
+
+```bash
+./test.sh
+```
+
+This script:
+1. Builds the compiler and test executable
+2. Runs all tests using GoogleTest
+3. Reports test results
+
+<Note>
+  The `test.sh` script is located in the project root directory. Make sure it's executable: `chmod +x test.sh`
+</Note>
+
+## Test Framework
+
+Neutronium uses **GoogleTest** (also known as gtest) for all unit and integration tests.
+
+### Why GoogleTest?
+
+<Card title="Industry Standard" icon="check">
+  GoogleTest is the most widely used C++ testing framework with excellent documentation and tooling support.
+</Card>
+
+<Card title="Rich Assertions" icon="vial">
+  Provides comprehensive assertion macros for validating compiler behavior.
+</Card>
+
+<Card title="Test Discovery" icon="magnifying-glass">
+  CMake automatically discovers tests using `gtest_discover_tests()`, so new tests are automatically included.
+</Card>
+
+### Version
+
+The project uses **GoogleTest v1.17.0**, automatically fetched during the CMake configuration.
+
+## Test Structure
+
+All test files are located in the `tests/` directory:
+
+```
+tests/
+├── CliTests.cpp          # Command-line interface tests
+├── CompilationError.cpp  # Error handling tests
+├── ExecutionTest.cpp     # End-to-end execution tests
+├── LexerTests.cpp        # Lexer/tokenization tests
+└── StdLibraryTests.cpp   # Standard library tests
+```
+
+### Test Categories
+
+<Steps>
+  <Step title="CliTests.cpp">
+    Tests for command-line argument parsing and compiler driver behavior.
+    
+    Validates:
+    - Command-line option handling
+    - Help text and usage messages
+    - Error handling for invalid arguments
+  </Step>
+  
+  <Step title="LexerTests.cpp">
+    Tests for the lexical analyzer (tokenizer).
+    
+    Validates:
+    - Token recognition (keywords, identifiers, operators)
+    - Whitespace handling
+    - Comment parsing
+    - Error recovery
+  </Step>
+  
+  <Step title="CompilationError.cpp">
+    Tests for compiler error detection and reporting.
+    
+    Validates:
+    - Syntax error detection
+    - Semantic error detection
+    - Type error detection
+    - Error message quality
+  </Step>
+  
+  <Step title="ExecutionTest.cpp">
+    End-to-end integration tests that compile and run Neutronium programs.
+    
+    Validates:
+    - Correct code generation
+    - Runtime behavior
+    - Program output
+  </Step>
+  
+  <Step title="StdLibraryTests.cpp">
+    Tests for standard library functions.
+    
+    Validates:
+    - Built-in function behavior (`print_num`, `mod`, `abs`, etc.)
+    - Library integration with compiled code
+  </Step>
+</Steps>
+
+## How Tests Are Discovered
+
+Tests are automatically discovered through CMake configuration in `CMakeLists.txt`:
+
+```cmake
+# Collect all test source files
+file(GLOB_RECURSE TEST_SOURCES "tests/*.cpp")
+
+# Create test executable
+add_executable(tests ${TEST_SOURCES})
+
+# Link with compiler library and GoogleTest
+target_link_libraries(tests PRIVATE neutronium_lib gtest_main)
+
+# Enable testing and discover tests
+include(GoogleTest)
+gtest_discover_tests(tests)
+```
+
+### What This Means
+
+<Card title="Automatic Discovery" icon="wand-magic-sparkles">
+  CMake's `gtest_discover_tests()` automatically finds all test cases in the test executable.
+  
+  You don't need to manually register tests - just write them using GoogleTest macros.
+</Card>
+
+<Card title="Add Files Anywhere" icon="folder-plus">
+  Any `.cpp` file added to `tests/` is automatically compiled into the test executable.
+  
+  Tests are discovered at build time, not CMake configuration time.
+</Card>
+
+## Writing New Tests
+
+To add a new test:
+
+<Steps>
+  <Step title="Create a test file">
+    Add a new `.cpp` file in the `tests/` directory:
+    
+    ```bash
+    touch tests/ParserTests.cpp
+    ```
+  </Step>
+  
+  <Step title="Include GoogleTest headers">
+    ```cpp
+    #include <gtest/gtest.h>
+    #include "parse/Parser.h"  // Include modules you're testing
+    ```
+  </Step>
+  
+  <Step title="Write test cases">
+    Use GoogleTest macros to define tests:
+    
+    ```cpp
+    TEST(ParserTests, ParsesSimpleFunction) {
+        // Arrange
+        std::string source = "fn main(): { return; }";
+        Parser parser(source);
+        
+        // Act
+        auto ast = parser.parse();
+        
+        // Assert
+        ASSERT_NE(ast, nullptr);
+        EXPECT_EQ(ast->functions.size(), 1);
+    }
+    
+    TEST(ParserTests, ReportsParseError) {
+        std::string source = "fn main( { }";
+        Parser parser(source);
+        
+        EXPECT_THROW(parser.parse(), ParsingError);
+    }
+    ```
+  </Step>
+  
+  <Step title="Run tests">
+    ```bash
+    ./test.sh
+    ```
+    
+    Your new tests are automatically discovered and executed!
+  </Step>
+</Steps>
+
+## GoogleTest Basics
+
+### Common Assertions
+
+| Assertion | Purpose | Example |
+|-----------|---------|----------|
+| `ASSERT_EQ(a, b)` | Fatal: a equals b | `ASSERT_EQ(tokens.size(), 5);` |
+| `EXPECT_EQ(a, b)` | Non-fatal: a equals b | `EXPECT_EQ(result, 42);` |
+| `ASSERT_NE(a, b)` | Fatal: a not equal to b | `ASSERT_NE(ptr, nullptr);` |
+| `ASSERT_TRUE(x)` | Fatal: x is true | `ASSERT_TRUE(success);` |
+| `ASSERT_FALSE(x)` | Fatal: x is false | `ASSERT_FALSE(hasError);` |
+| `EXPECT_THROW(stmt, ex)` | stmt throws exception | `EXPECT_THROW(parse(), Error);` |
+
+<Note>
+  **ASSERT_** vs **EXPECT_**: Use `ASSERT_*` when the test cannot continue if the assertion fails. Use `EXPECT_*` when you want to continue checking other conditions.
+</Note>
+
+### Test Fixtures
+
+For tests that share common setup:
+
+```cpp
+class ParserFixture : public ::testing::Test {
+protected:
+    void SetUp() override {
+        // Common setup code
+    }
+    
+    void TearDown() override {
+        // Cleanup code
+    }
+    
+    // Shared test data
+    SourceManager sourceManager;
+};
+
+TEST_F(ParserFixture, TestWithFixture) {
+    // Use sourceManager from fixture
+    EXPECT_TRUE(sourceManager.isValid());
+}
+```
+
+## Running Specific Tests
+
+To run a specific test suite or test case:
+
+```bash
+# Build tests
+cmake --build build
+
+# Run specific test suite
+./build/tests --gtest_filter=LexerTests.*
+
+# Run specific test case
+./build/tests --gtest_filter=LexerTests.TokenizesKeywords
+
+# Run multiple patterns
+./build/tests --gtest_filter=LexerTests.*:ParserTests.*
+```
+
+## Test Best Practices
+
+<Steps>
+  <Step title="Test one thing per test">
+    Each test should verify a single behavior or condition. This makes failures easier to diagnose.
+    
+    ```cpp
+    // Good
+    TEST(LexerTests, TokenizesIdentifiers) { ... }
+    TEST(LexerTests, TokenizesKeywords) { ... }
+    
+    // Avoid
+    TEST(LexerTests, TokenizesEverything) { ... }
+    ```
+  </Step>
+  
+  <Step title="Use descriptive names">
+    Test names should describe what they test and the expected outcome.
+    
+    ```cpp
+    // Good
+    TEST(ParserTests, RejectsMissingReturnType)
+    
+    // Less clear
+    TEST(ParserTests, Test1)
+    ```
+  </Step>
+  
+  <Step title="Follow Arrange-Act-Assert">
+    Structure tests clearly:
+    
+    ```cpp
+    TEST(CodeGenTests, GeneratesAddition) {
+        // Arrange - set up test data
+        auto expr = makeAddExpr(makeInt(1), makeInt(2));
+        CodeGenerator gen;
+        
+        // Act - perform the operation
+        auto result = gen.generate(expr);
+        
+        // Assert - verify the result
+        EXPECT_EQ(result.instructions.size(), 1);
+    }
+    ```
+  </Step>
+  
+  <Step title="Test both success and failure">
+    Test valid inputs AND error cases:
+    
+    ```cpp
+    TEST(TypeChecker, AcceptsValidTypes) { ... }
+    TEST(TypeChecker, RejectsTypeMismatch) { ... }
+    ```
+  </Step>
+</Steps>
+
+## Continuous Integration
+
+Tests are automatically run in CI using GitHub Actions:
+
+- **Build workflow**: Ensures the compiler builds successfully
+- **Test workflow**: Runs the full test suite on every push
+- **Coverage reporting**: Tracks code coverage with Codecov
+
+See the badges in the README for current build and test status.

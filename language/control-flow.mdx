@@ -1,0 +1,322 @@
+---
+title: Control flow
+description: If statements, loops, and control flow in Neutronium
+---
+
+Neutronium provides standard control flow constructs with a clean, colon-and-braces syntax.
+
+## If Statements
+
+Conditional execution uses `if`, `elif`, and `else` with a mandatory colon before the block:
+
+```neutronium
+if x > 0: {
+    print_num(x);
+}
+```
+
+### If-Elif-Else
+
+Chain multiple conditions with `elif`:
+
+```neutronium
+if x > 1000: {
+    println(flag);
+} elif x == 0: {
+    println(true);
+} else: {
+    println(false);
+}
+```
+
+### Inline Blocks
+
+Single-statement blocks can be written inline:
+
+```neutronium
+if n == 1: { println(true); }
+else: { println(false); }
+```
+
+### If Statement Grammar
+
+```ebnf
+if-statement ::= 'if' expression ':' block-statement { elif-clause } [ else-clause ]
+elif-clause ::= 'elif' expression ':' block-statement
+else-clause ::= 'else' ':' block-statement
+```
+
+## While Loops
+
+Repeat execution while a condition is true:
+
+```neutronium
+let mut i = 0;
+while i < 10: {
+    print_num(i);
+    i += 1;
+}
+```
+
+### While Loop Grammar
+
+```ebnf
+while-statement ::= 'while' expression ':' block-statement
+```
+
+<Note>
+Neutronium currently only supports `while` loops. There is no `for` loop construct.
+</Note>
+
+## Break Statement
+
+Exit a loop early with `break`:
+
+```neutronium
+let mut index = 0;
+while index < 10: {
+    if index == 5: {
+        break;
+    }
+    index += 1;
+}
+```
+
+### Break Grammar
+
+```ebnf
+break-statement ::= 'break' ';'
+```
+
+## Continue Statement
+
+Skip to the next iteration with `continue`:
+
+```neutronium
+let mut index = 0;
+while index < 10: {
+    if index < 3: {
+        index += 1;
+        continue;
+    }
+    print_num(index);
+    index += 1;
+}
+```
+
+### Continue Grammar
+
+```ebnf
+continue-statement ::= 'continue' ';'
+```
+
+## Return Statement
+
+Return from a function with optional value:
+
+```neutronium
+# Return without value
+fn doNothing(): {
+    return;
+}
+
+# Return with value
+fn getValue() -> int: {
+    return 42;
+}
+```
+
+### Conditional Returns
+
+```neutronium
+export fn abs(val: int) -> int: {
+    if val < 0: {
+        return -val;
+    }
+    return val;
+}
+```
+
+### Return Grammar
+
+```ebnf
+return-statement ::= 'return' ';'
+                   | 'return' expression ';'
+```
+
+## Exit Statement
+
+Terminate the program with an exit code:
+
+```neutronium
+if error: {
+    exit 1;
+}
+
+exit 0;  # Success
+```
+
+### Exit Grammar
+
+```ebnf
+exit-statement ::= 'exit' expression ';'
+```
+
+<Warning>
+`exit` terminates the entire program immediately, not just the current function. Use `return` for normal function control flow.
+</Warning>
+
+## Real-World Examples
+
+### Power Function with Loop
+
+```neutronium
+# Returns a^b (a to the power of b)
+export fn pow(a: int, b: int) -> int: {
+    let mut result = 1;
+    let mut i = 0;
+    while i < b: {
+        result = result * a;
+        i = i + 1;
+    }
+    return result;
+}
+```
+
+### Min/Max Functions
+
+```neutronium
+export fn min(a: int, b: int) -> int: {
+    if a < b: {
+        return a;
+    }
+    return b;
+}
+
+export fn max(a: int, b: int) -> int: {
+    if a > b: {
+        return a;
+    }
+    return b;
+}
+```
+
+### Complex Control Flow
+
+```neutronium
+fn helperFunction(): {
+    let mut index = 0;
+    while index < 10: {
+        if index == 5: {
+            break;
+        } elif index < 3: {
+            continue;
+        }
+        index += 1;
+    }
+    exit 0;
+}
+```
+
+### Nested Loops and Conditions
+
+```neutronium
+fn main(): {
+    let mut counter = 42893;
+    
+    while counter < 5000: {
+        counter -= 250;
+        let mut x = counter * 2 + 15;
+        x -= 10 + 3;
+        x *= 2;
+        let y = x / 5 - 7;
+
+        if y >= 0: { continue; } 
+        else: { break; }
+    }
+}
+```
+
+## Logical Expressions
+
+Control flow conditions can use logical operators:
+
+```neutronium
+if x > 0 && y < 100: {
+    # Both conditions must be true
+}
+
+if flag || counter == 0: {
+    # Either condition can be true
+}
+
+if !(x > 10): {
+    # Negation
+}
+```
+
+### Comparison Operators
+
+- `==` - Equal to
+- `!=` - Not equal to
+- `<` - Less than
+- `<=` - Less than or equal to
+- `>` - Greater than
+- `>=` - Greater than or equal to
+
+### Logical Operators
+
+- `&&` - Logical AND
+- `||` - Logical OR
+- `!` - Logical NOT
+
+## Best Practices
+
+<Accordion title="Prefer early returns">
+
+Early returns can make code more readable:
+
+**Good:**
+```neutronium
+fn process(val: int) -> int: {
+    if val < 0: {
+        return 0;
+    }
+    return val * 2;
+}
+```
+
+**Less clear:**
+```neutronium
+fn process(val: int) -> int: {
+    let mut result = 0;
+    if val >= 0: {
+        result = val * 2;
+    }
+    return result;
+}
+```
+
+</Accordion>
+
+<Accordion title="Avoid infinite loops">
+
+Always ensure loop conditions can become false:
+
+**Good:**
+```neutronium
+let mut i = 0;
+while i < 10: {
+    i += 1;  # Progress toward termination
+}
+```
+
+**Dangerous:**
+```neutronium
+let mut x = 5;
+while x > 0: {
+    # x never changes - infinite loop!
+}
+```
+
+</Accordion>

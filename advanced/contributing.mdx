@@ -1,0 +1,334 @@
+---
+title: "Contributing"
+description: "Contribute to Neutronium development"
+---
+
+Contributions to Neutronium are welcome! Whether you're fixing bugs, adding features, or improving documentation, this guide will help you get started.
+
+## Getting Started
+
+Neutronium is an educational programming language project written in C++23. The compiler runs on **Linux only** (Ubuntu/Debian tested).
+
+<Note>
+  Before contributing, make sure you can build and run the compiler on your Linux system. The project does not currently support Windows or macOS.
+</Note>
+
+## Development Setup
+
+Follow these steps to set up your development environment:
+
+<Steps>
+  <Step title="Clone the repository">
+    ```bash
+    git clone https://github.com/Thibault-Monnier/neutronium.git
+    cd neutronium
+    ```
+  </Step>
+  
+  <Step title="Install dependencies">
+    On Ubuntu/Debian:
+    
+    ```bash
+    sudo apt update
+    sudo apt install build-essential cmake ninja-build
+    ```
+    
+    Requirements:
+    - CMake 3.28 or higher
+    - GCC or Clang (Clang recommended)
+    - Ninja build system
+  </Step>
+  
+  <Step title="Make scripts executable">
+    ```bash
+    chmod +x configure-cmake.sh
+    chmod +x compile.sh
+    chmod +x run.sh
+    chmod +x test.sh
+    ```
+  </Step>
+  
+  <Step title="Configure and build">
+    ```bash
+    # Configure CMake (first time only)
+    ./configure_cmake.sh
+    
+    # Build the compiler
+    ./compile.sh examples/hello.nt
+    ```
+  </Step>
+  
+  <Step title="Run tests">
+    Verify everything works:
+    
+    ```bash
+    ./test.sh
+    ```
+    
+    All tests should pass before you start making changes.
+  </Step>
+</Steps>
+
+## How to Contribute
+
+### Reporting Bugs
+
+If you find a bug, please report it to the [Neutronium issue tracker](https://github.com/Thibault-Monnier/neutronium/issues).
+
+<Card title="Good Bug Reports Include" icon="bug">
+  - **Clear description**: What happened vs. what you expected
+  - **Minimal example**: Smallest Neutronium code that reproduces the bug
+  - **Steps to reproduce**: Exact commands you ran
+  - **Environment**: OS version, compiler version, CMake version
+  - **Error output**: Full compiler error messages or stack traces
+</Card>
+
+**Example bug report:**
+
+```markdown
+Title: Compiler crashes on nested array access
+
+Description:
+The compiler segfaults when accessing nested arrays in certain cases.
+
+Minimal example:
+```neutronium
+fn main(): {
+    let arr: [[int; 2]; 2] = [[1, 2], [3, 4]];
+    let value = arr[0][1];  // Crash here
+}
+```
+
+Steps to reproduce:
+1. Save code to test.nt
+2. Run: ./compile.sh test.nt
+3. Compiler crashes with segmentation fault
+
+Environment:
+- Ubuntu 22.04
+- Clang 15.0.0
+- CMake 3.28.1
+```
+
+### Contributing Code
+
+Follow these steps to contribute code:
+
+1. **Find or create an issue**: Check the [issue tracker](https://github.com/Thibault-Monnier/neutronium/issues) and [roadmap](https://github.com/Thibault-Monnier/neutronium/blob/main/docs/roadmap/language-features.md) before starting work.
+
+2. **Fork and clone**: Fork the repository on GitHub, then clone your fork locally.
+
+3. **Create a branch**: Create a descriptive feature branch for your changes.
+
+4. **Make your changes**: Write your code following the project standards, add tests, and ensure all tests pass.
+
+5. **Commit**: Write clear commit messages explaining what changed and why.
+
+6. **Push and PR**: Push to your fork and create a pull request with a clear description, links to issues, and test results.
+
+## Code Standards
+
+Neutronium uses automated tools to maintain code quality:
+
+### Formatting
+
+The project uses **`.clang-format`** for consistent code formatting.
+
+```bash
+# Format a single file
+clang-format -i src/parse/Parser.cpp
+
+# Format all source files
+find src -name '*.cpp' -o -name '*.h' | xargs clang-format -i
+```
+
+<Note>
+  Run clang-format before committing to ensure your code matches the project style.
+</Note>
+
+### Static Analysis
+
+The project uses **`.clang-tidy`** for static analysis and best practices.
+
+```bash
+# Run clang-tidy on a file
+clang-tidy src/parse/Parser.cpp -- -std=c++23
+
+# Run on all files
+find src -name '*.cpp' | xargs clang-tidy
+```
+
+### Code Style Guidelines
+
+<Card title="C++ Best Practices" icon="code">
+  - Use C++23 features where appropriate
+  - Prefer `const` and `constexpr` for immutable data
+  - Use smart pointers (`std::unique_ptr`, `std::shared_ptr`) over raw pointers
+  - Avoid manual memory management
+  - Use `auto` for complex types, explicit types for clarity
+</Card>
+
+<Card title="Naming Conventions" icon="text">
+  - Classes: `PascalCase` (e.g., `Parser`, `SemanticAnalyser`)
+  - Functions: `camelCase` (e.g., `parseExpression`, `analyzeType`)
+  - Variables: `camelCase` (e.g., `tokenStream`, `currentNode`)
+  - Constants: `UPPER_SNAKE_CASE` (e.g., `MAX_TOKENS`)
+</Card>
+
+<Card title="Comments and Documentation" icon="message">
+  - Document public APIs with comments
+  - Explain **why**, not **what** (code should be self-explanatory)
+  - Keep comments up-to-date with code changes
+</Card>
+
+## Testing Requirements
+
+All contributions must include appropriate tests:
+
+### For Bug Fixes
+
+1. Add a test that **fails** before your fix
+2. Verify the test **passes** after your fix
+3. Place test in relevant file (e.g., `LexerTests.cpp` for lexer bugs)
+
+### For New Features
+
+1. Add tests covering normal usage
+2. Add tests for edge cases
+3. Add tests for error conditions
+4. Ensure all existing tests still pass
+
+See the [Testing guide](/advanced/testing) for details on writing tests.
+
+## Building and Testing
+
+### Build Commands
+
+```bash
+# Reconfigure CMake (after changing build options)
+./configure_cmake.sh
+
+# Build and compile a Neutronium file
+./compile.sh examples/fibonacci.nt
+
+# Build, compile, and run a Neutronium file
+./run.sh examples/fibonacci.nt
+```
+
+### Test Scripts
+
+```bash
+# Run all tests
+./test.sh
+
+# Run specific test suite
+./build/tests --gtest_filter=LexerTests.*
+```
+
+### Compiler Options
+
+The compiler accepts these options (defined via `cxxopts`):
+
+```bash
+neutronium [OPTIONS] <source-file>
+
+Options:
+  -h, --help          Show help message
+  -v, --version       Show version information
+  -o, --output FILE   Specify output file (default: neutro/out)
+  --dump-tokens       Print lexer tokens
+  --dump-ast          Print abstract syntax tree
+```
+
+## Finding Tasks
+
+Looking for something to work on? Check these resources:
+
+<Steps>
+  <Step title="Language Features Roadmap">
+    See the [roadmap](https://github.com/Thibault-Monnier/neutronium/blob/main/docs/roadmap/language-features.md) for planned features.
+    
+    This is the best place to find significant features to implement.
+  </Step>
+  
+  <Step title="Good First Issues">
+    Check issues labeled `good first issue` on GitHub for beginner-friendly tasks.
+  </Step>
+  
+  <Step title="TODO Comments">
+    Search the codebase for `TODO` and `FIXME` comments:
+    
+    ```bash
+    grep -r "TODO\|FIXME" src/
+    ```
+  </Step>
+  
+  <Step title="Test Coverage">
+    Check [Codecov](https://codecov.io/gh/Thibault-Monnier/neutronium) to find untested code that needs tests.
+  </Step>
+</Steps>
+
+## Development Workflow
+
+A typical development workflow:
+
+```bash
+# 1. Create feature branch
+git checkout -b feature/string-type
+
+# 2. Make changes
+vim src/type/Type.cpp
+vim src/lex/Lexer.cpp
+
+# 3. Format code
+find src -name '*.cpp' -o -name '*.h' | xargs clang-format -i
+
+# 4. Run static analysis
+clang-tidy src/type/Type.cpp src/lex/Lexer.cpp
+
+# 5. Build and test
+./test.sh
+
+# 6. Test manually
+echo 'fn main(): { let s = "hello"; }' > test.nt
+./compile.sh test.nt
+
+# 7. Commit
+git add .
+git commit -m "Add string type support"
+
+# 8. Push and create PR
+git push origin feature/string-type
+```
+
+## Scripts Directory
+
+The `scripts/` directory is ignored by version control. Use it for:
+
+- Personal test scripts
+- Development utilities
+- Experimental Neutronium code
+
+```bash
+# Your personal testing scripts won't be committed
+echo 'fn main(): { return; }' > scripts/my_test.nt
+./run.sh scripts/my_test.nt
+```
+
+## Getting Help
+
+If you need help:
+
+1. Check the [documentation](https://github.com/Thibault-Monnier/neutronium/tree/main/docs)
+2. Search existing [issues](https://github.com/Thibault-Monnier/neutronium/issues)
+3. Ask questions by creating a new issue with the `question` label
+
+## Project Status
+
+Check these badges for current project health:
+
+- **Build Status**: [![Build all targets](https://github.com/Thibault-Monnier/neutronium/actions/workflows/build-clang.yaml/badge.svg)](https://github.com/Thibault-Monnier/neutronium/actions/workflows/build-clang.yaml)
+- **Tests**: [![Run Tests](https://github.com/Thibault-Monnier/neutronium/actions/workflows/test-clang.yaml/badge.svg)](https://github.com/Thibault-Monnier/neutronium/actions/workflows/test-clang.yaml)
+- **Coverage**: [![codecov](https://codecov.io/gh/Thibault-Monnier/neutronium/graph/badge.svg?token=VAEY97VTE3)](https://codecov.io/gh/Thibault-Monnier/neutronium)
+
+Thank you for contributing to Neutronium!

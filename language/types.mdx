@@ -1,0 +1,160 @@
+---
+title: Type system
+description: Static types with type inference in Neutronium
+---
+
+Neutronium has a static type system with optional type inference. The compiler infers types when possible, but you can always specify them explicitly for clarity.
+
+## Primitive Types
+
+Neutronium provides integer and boolean types:
+
+### Integer Types
+
+- **`int`** - Default integer type (platform-dependent size)
+- **`int8`** - 8-bit signed integer
+- **`int16`** - 16-bit signed integer
+- **`int32`** - 32-bit signed integer
+- **`int64`** - 64-bit signed integer
+
+```neutronium
+let x: int = 42;
+let small: int8 = 127;
+let medium: int16 = 32000;
+let large: int32 = 2147483647;
+let huge: int64 = 9223372036854775807;
+```
+
+### Boolean Type
+
+- **`bool`** - Boolean type with values `true` or `false`
+
+```neutronium
+let flag: bool = true;
+let condition = false;  # Type inferred as bool
+```
+
+## Array Types
+
+Arrays have a fixed size known at compile time. The syntax is `[type; size]`:
+
+```neutronium
+let numbers: [int; 5] = [1, 2, 3, 4, 5];
+let flags: [bool; 3] = [true, false, true];
+let matrix: [int32; 5] = [1, 2, 3, 4, 5];
+```
+
+See the [Arrays](/language/arrays) page for more details.
+
+## Type Inference
+
+Neutronium infers types from initializer expressions:
+
+```neutronium
+let x = 5;           # Inferred as int
+let flag = true;     # Inferred as bool
+let result = x * 2;  # Inferred as int
+```
+
+### When to Use Explicit Types
+
+Explicit type annotations are required in certain contexts:
+
+1. **Function parameters** - Always require explicit types
+2. **Array variables** - When you need a specific integer size
+3. **Clarity** - When the type isn't obvious from context
+
+```neutronium
+# Parameters require explicit types
+fn compute(x: int, y: int32) -> int: {
+    # Explicit type for specific size
+    let array: [int32; 5] = [1, 2, 3, 4, 5];
+    
+    # Inferred types are fine here
+    let result = x + y;
+    return result;
+}
+```
+
+<Note>
+Function parameters and return types must always be explicitly typed. Type inference only applies to local variables with initializers.
+</Note>
+
+## Type Grammar
+
+The formal grammar for type specifiers:
+
+```ebnf
+type-specifier ::= 'int' | 'int8' | 'int16' | 'int32' | 'int64'
+                 | 'bool'
+                 | array-type
+                 
+array-type ::= '[' type-specifier ';' integer-literal ']'
+```
+
+## Examples from Real Code
+
+### Math Library Functions
+
+```neutronium
+# Function with explicit parameter and return types
+export fn mod(a: int, b: int) -> int: {
+    return a - (a / b) * b;
+}
+
+export fn abs(val: int) -> int: {
+    if val < 0: {
+        return -val;
+    }
+    return val;
+}
+```
+
+### Mixed Type Usage
+
+```neutronium
+fn main(): {
+    # Explicit int32 array
+    let mut array: [int32; 5] = [1, 2, 3, 4, 5];
+    
+    # Inferred int type
+    let smallNumber = 5;
+    
+    # Inferred bool type
+    let flag = true;
+    
+    # Explicit int variable
+    let mut counter: int = 0;
+    
+    # Type inferred from expression
+    counter += array[2] * 10 - smallNumber;
+}
+```
+
+## Type Compatibility
+
+<Warning>
+Neutronium requires exact type matches. There is no implicit conversion between different integer sizes:
+
+```neutronium
+let x: int = 5;
+let y: int32 = 10;
+let result = x + y;  # This may require explicit conversion
+```
+</Warning>
+
+## No Type
+
+Functions that don't return a value omit the return type:
+
+```neutronium
+# No return type specified
+fn println(noParam: bool): {
+    # Function body
+}
+
+# Explicit return type
+fn getValue() -> int: {
+    return 42;
+}
+```

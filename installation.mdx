@@ -1,0 +1,86 @@
+---
+title: 'Installation'
+description: 'Install Neutronium and its dependencies on Linux'
+---
+
+## Prerequisites
+
+Neutronium requires a Linux environment (Ubuntu/Debian-based distributions are recommended) and CMake version 3.28 or higher.
+
+<Note>
+  These installation instructions are tailored for Ubuntu/Debian environments. The compiler currently only supports Linux.
+</Note>
+
+## Installation Steps
+
+<Steps>
+  <Step title="Install Dependencies">
+    Update your package manager and install the required build tools:
+
+    ```bash
+    sudo apt update
+    sudo apt install build-essential cmake ninja-build
+    ```
+
+    This installs:
+    - `build-essential`: GCC compiler, make, and essential build tools
+    - `cmake`: Build system generator (minimum version 3.28)
+    - `ninja-build`: Fast build system
+  </Step>
+
+  <Step title="Verify CMake Version">
+    Ensure your CMake version is at least 3.28:
+
+    ```bash
+    cmake --version
+    ```
+
+    If your version is lower than 3.28, you'll need to upgrade CMake before proceeding.
+  </Step>
+
+  <Step title="Clone the Repository">
+    Clone the Neutronium repository from GitHub:
+
+    ```bash
+    git clone https://github.com/Thibault-Monnier/neutronium.git
+    cd neutronium
+    ```
+  </Step>
+
+  <Step title="Make Scripts Executable">
+    Set executable permissions on the build and run scripts:
+
+    ```bash
+    chmod +x configure-cmake.sh
+    chmod +x compile.sh
+    chmod +x run.sh
+    chmod +x test.sh
+    ```
+  </Step>
+
+  <Step title="Configure CMake">
+    Run the CMake configuration script to set up the build system:
+
+    ```bash
+    ./configure-cmake.sh
+    ```
+
+    This creates the necessary build files for compiling Neutronium.
+  </Step>
+</Steps>
+
+## Verify Installation
+
+To verify that Neutronium is installed correctly, you can run the test suite:
+
+```bash
+./test.sh
+```
+
+If all tests pass, your installation is complete!
+
+## Next Steps
+
+<Card title="Quickstart Guide" icon="rocket" href="/quickstart">
+  Learn how to write and compile your first Neutronium program
+</Card>

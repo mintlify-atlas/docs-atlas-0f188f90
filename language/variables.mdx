@@ -1,0 +1,199 @@
+---
+title: Variables
+description: Declare and use variables in Neutronium
+---
+
+Variables in Neutronium are declared using the `let` keyword. All variables must be initialized when declared.
+
+## Basic Variable Declaration
+
+Use `let` to declare a variable with an initial value:
+
+```neutronium
+let x = 5;
+let name = 42;
+let flag = true;
+```
+
+The type is inferred from the initializer expression.
+
+## Explicit Type Annotations
+
+You can explicitly specify the type after the variable name:
+
+```neutronium
+let x: int = 5;
+let counter: int32 = 0;
+let flag: bool = true;
+let numbers: [int; 3] = [1, 2, 3];
+```
+
+<Note>
+Type annotations are optional for local variables but required for function parameters.
+</Note>
+
+## Mutable Variables
+
+By default, variables are immutable. Use the `mut` keyword to make a variable mutable:
+
+```neutronium
+let x = 5;
+x = 10;  # Error: x is immutable
+
+let mut y = 5;
+y = 10;  # OK: y is mutable
+```
+
+### Real Example: Loop Counter
+
+```neutronium
+let mut counter = 0;
+while counter < 10: {
+    print_num(counter);
+    counter += 1;
+}
+```
+
+## Variable Definition Syntax
+
+The formal grammar for variable definitions:
+
+```ebnf
+variable-definition ::= 'let' [ 'mut' ] identifier [ ':' type-specifier ] '=' expression ';'
+```
+
+Breaking this down:
+- `let` - Required keyword
+- `mut` - Optional mutability modifier
+- `identifier` - Variable name
+- `: type-specifier` - Optional type annotation
+- `= expression` - Required initializer
+- `;` - Required semicolon
+
+## Assignment
+
+Once a mutable variable is declared, you can assign new values:
+
+```neutronium
+let mut x = 5;
+x = 10;      # Simple assignment
+x += 5;      # Compound assignment
+x -= 2;
+x *= 3;
+x /= 4;
+```
+
+### Compound Assignment Operators
+
+- `+=` - Add and assign
+- `-=` - Subtract and assign
+- `*=` - Multiply and assign
+- `/=` - Divide and assign
+
+## Scope
+
+Variables are scoped to the block in which they are declared:
+
+```neutronium
+fn main(): {
+    let x = 5;
+    
+    if x > 0: {
+        let y = 10;  # y only exists in this block
+        print_num(y);
+    }
+    
+    # y is not accessible here
+}
+```
+
+## Examples from Real Code
+
+### Math Function with Local Variables
+
+```neutronium
+export fn pow(a: int, b: int) -> int: {
+    let mut result = 1;  # Mutable accumulator
+    let mut i = 0;       # Mutable counter
+    while i < b: {
+        result = result * a;
+        i = i + 1;
+    }
+    return result;
+}
+```
+
+### Mixed Mutable and Immutable Variables
+
+```neutronium
+fn main(): {
+    let mut aLongVariableNameWithLotsOfCharacters = 42893;
+    let mut counter = 0;
+    let smallNumber = 5;  # Immutable
+    let mut array: [int32; 5] = [1, 2, 3, 4, 5];
+    let flag = true;      # Immutable
+
+    aLongVariableNameWithLotsOfCharacters += 1 - 42 * (7 / 3) + 5;
+    counter += array[2] * 10 - smallNumber;
+}
+```
+
+### Block-Scoped Variables
+
+```neutronium
+while aLongVariableNameWithLotsOfCharacters < 5000: {
+    aLongVariableNameWithLotsOfCharacters -= 250;
+    
+    # x is scoped to this while block
+    let mut x = aLongVariableNameWithLotsOfCharacters * 2 + 15;
+    x -= 10 + 3;
+    x *= 2;
+    
+    # y is also block-scoped
+    let y = x / 5 - 7;
+    
+    if y >= 0: { continue; } else: { break; }
+}
+```
+
+## Best Practices
+
+<Accordion title="When to use mut">
+
+Use `mut` only when you need to modify a variable:
+
+**Good:**
+```neutronium
+let mut counter = 0;  # Will be incremented
+let max = 100;        # Constant value
+```
+
+**Avoid:**
+```neutronium
+let mut x = 5;  # Unnecessary if x is never reassigned
+```
+
+</Accordion>
+
+<Accordion title="Type inference vs explicit types">
+
+Use type inference for clarity, explicit types when:
+- You need a specific integer size (`int8`, `int32`, etc.)
+- The type isn't obvious from the initializer
+- Working with arrays
+
+**Good:**
+```neutronium
+let counter = 0;                    # Clear from context
+let array: [int32; 5] = [1,2,3,4,5]; # Specific size needed
+```
+
+</Accordion>
+
+<Warning>
+All variables must be initialized at declaration. Uninitialized variables are not allowed:
+
+```neutronium
+let x;  # Error: missing initializer
+```
+</Warning>

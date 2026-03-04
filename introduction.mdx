@@ -1,0 +1,52 @@
+---
+title: 'Introduction'
+description: 'Learn about Neutronium, a lightweight C-like programming language compiler'
+---
+
+## What is Neutronium?
+
+Neutronium is a lightweight C-like programming language built as an educational project. It provides a multi-stage compilation pipeline that transforms high-level source code into native x86-64 executables.
+
+## Key Features
+
+- **C-like Syntax**: Familiar syntax for developers comfortable with C-family languages
+- **Multi-Stage Compilation**: Complete pipeline from lexing through code generation
+- **x86-64 Code Generation**: Produces native assembly code for x86-64 architecture
+- **Type System**: Static typing with type inference support
+- **Standard Library**: Built-in runtime with math functions and I/O operations
+
+## What Makes Neutronium Unique?
+
+Neutronium is designed as an educational compiler that demonstrates the full compilation process:
+
+1. **Lexical Analysis**: Tokenizes source code
+2. **Parsing**: Builds an Abstract Syntax Tree (AST)
+3. **Semantic Analysis**: Type checking and validation
+4. **Code Generation**: Produces x86-64 assembly
+5. **Assembly & Linking**: Creates executable binaries
+
+You can stop at any stage using command-line flags like `--only-lex`, `--only-parse`, `--only-sema`, or `--only-codegen` to inspect intermediate representations.
+
+## Target Audience
+
+Neutronium is ideal for:
+
+- **Students** learning about compiler design and implementation
+- **Language Enthusiasts** interested in how programming languages work
+- **Educators** teaching compiler construction concepts
+- **Developers** wanting to understand compilation pipelines
+
+<Note>
+  **Linux Only**: The Neutronium compiler currently works on Linux only. The following documentation assumes you're using an Ubuntu/Debian-based distribution.
+</Note>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/installation">
+    Install Neutronium and its dependencies
+  </Card>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Write and compile your first program
+  </Card>
+</CardGroup>
