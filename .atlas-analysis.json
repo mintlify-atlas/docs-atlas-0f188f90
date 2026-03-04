@@ -1,0 +1,107 @@
+{
+  "projectType": "cli-tool",
+  "projectName": "Neutronium",
+  "projectDescription": "A lightweight C-like programming language compiler built for education and performance.",
+  "theme": "aspen",
+  "primaryColor": "#f41c7c",
+  "lightColor": "#1c1434",
+  "darkColor": "#fc7cbc",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Language Reference",
+            "pages": [
+              "language/syntax",
+              "language/types",
+              "language/variables",
+              "language/control-flow",
+              "language/functions",
+              "language/arrays"
+            ]
+          },
+          {
+            "group": "Compiler Guide",
+            "pages": [
+              "compiler/cli-reference",
+              "compiler/compilation-pipeline",
+              "compiler/debugging-options",
+              "compiler/target-types"
+            ]
+          },
+          {
+            "group": "Standard Library",
+            "pages": [
+              "stdlib/overview",
+              "stdlib/io",
+              "stdlib/math"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Advanced",
+        "groups": [
+          {
+            "group": "Development",
+            "pages": [
+              "advanced/architecture",
+              "advanced/benchmarking",
+              "advanced/testing",
+              "advanced/contributing"
+            ]
+          },
+          {
+            "group": "Roadmap",
+            "pages": [
+              "roadmap/language-features",
+              "roadmap/compiler-improvements"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "C-like syntax with modern language features",
+    "Multi-stage compilation pipeline (lexer, parser, semantic analysis, code generation)",
+    "x86-64 assembly code generation",
+    "Comprehensive CLI with debug logging options",
+    "Built-in standard library with I/O and math functions",
+    "Static type system with type inference",
+    "Arrays and control flow constructs",
+    "Export/import system for modular code"
+  ],
+  "publicApiSurface": [
+    "neutronium <input-file> - Compile a Neutronium source file",
+    "--help, -h - Display help information",
+    "--version, -v - Show compiler version",
+    "--target-type [bin|lib] - Specify compilation target",
+    "--debug, -d - Enable all debug logs",
+    "--log-code - Log the raw source file",
+    "--log-tokens - Log generated tokens",
+    "--log-ast - Log the abstract syntax tree",
+    "--log-assembly - Log final assembly output",
+    "--only-lex - Run lexer only",
+    "--only-parse - Run parser only",
+    "--only-sema - Run semantic analysis only",
+    "--only-codegen - Run code generation only",
+    "print_c(char: int) - Print a character (stdlib)",
+    "print_num(num: int) - Print a number (stdlib)",
+    "mod(a: int, b: int) -> int - Modulo operation (stdlib)",
+    "abs(val: int) -> int - Absolute value (stdlib)",
+    "min(a: int, b: int) -> int - Minimum of two values (stdlib)",
+    "max(a: int, b: int) -> int - Maximum of two values (stdlib)",
+    "pow(a: int, b: int) -> int - Power operation (stdlib)"
+  ]
+}
